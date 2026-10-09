@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Primary Meta Tags -->
+  <title>Nexora – Discover What's Next | News, AI Prompts, Tech & Free Books</title>
+  <meta name="title" content="Nexora – Discover What's Next" />
+  <meta name="description" content="Nexora হলো প্রযুক্তি ও ডিজিটাল বিশ্বের সর্বশেষ ব্রেকিং নিউজ, ক্রিয়েটিভ এআই প্রম্পট, দরকারি টেক গাইড এবং উন্মুক্ত ফ্রি বইয়ের নির্ভরযোগ্য ডিজিটাল প্ল্যাটফর্ম।" />
+  <meta name="keywords" content="Nexora, Breaking News, AI Prompts, Technology Insights, Free Books, Public Domain Books, Bengali Tech Magazine" />
+  <meta name="author" content="Nexora Editorial" />
+  <meta name="theme-color" content="#0a0f1d" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://nexora.digital/" />
+  <meta property="og:locale" content="bn_BD" />
+  <meta property="og:title" content="Nexora – Discover What's Next" />
+  <meta property="og:description" content="Latest breaking news, creative AI prompts, technology insights, and legally free books." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" />
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://nexora.digital/" />
+  <meta property="twitter:title" content="Nexora – Discover What's Next" />
+  <meta property="twitter:description" content="Latest news, creative AI prompts, tech insights, and free books." />
+  <meta property="twitter:image" content="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300F0FF'/><stop offset='100%' stop-color='%238B5CF6'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='%230A0F1D'/><path d='M25 75 V25 L50 50 V75 Z' fill='url(%23g)'/><path d='M50 25 L75 50 V75 L50 50 Z' fill='%2300F0FF'/><circle cx='70' cy='28' r='6' fill='%238B5CF6'/></svg>" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Nexora",
+    "alternateName": "Nexora Digital Magazine",
+    "url": "https://nexora.digital/",
+    "description": "Nexora is your digital destination for the latest news, creative AI prompts, useful technology insights, and free books."
+  }
+  </script>
+</head>
+<body>
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="skip-link">মূল কন্টেন্টে যান</a>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="site-header" id="site-header">
+    <div class="header-inner container">
+      <!-- Logo & Tagline with English Site Name: Nexora -->
+      <a href="index.html" class="brand-link" aria-label="Nexora Homepage">
+        <div class="brand-logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
+            <rect width="40" height="40" rx="10" fill="currentColor" class="logo-bg" />
+            <path d="M10 30V10L20 20V30H10Z" fill="url(#logo-gradient-1)" />
+            <path d="M20 10L30 20V30L20 20V10Z" fill="url(#logo-gradient-2)" />
+            <circle cx="28" cy="11" r="2.5" fill="#00F0FF" />
+            <defs>
+              <linearGradient id="logo-gradient-1" x1="10" y1="10" x2="20" y2="30" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#00F0FF" />
+                <stop offset="1" stop-color="#8B5CF6" />
+              </linearGradient>
+              <linearGradient id="logo-gradient-2" x1="20" y1="10" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#8B5CF6" />
+                <stop offset="1" stop-color="#00F0FF" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Nexora</span>
+          <span class="brand-tagline">Discover What's Next.</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="main-nav" id="main-nav" aria-label="Primary Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="news.html" class="nav-link">News</a></li>
+          <li><a href="prompts.html" class="nav-link">AI Prompts</a></li>
+          <li><a href="technology.html" class="nav-link">Technology</a></li>
+          <li><a href="books.html" class="nav-link">Free Books</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+        </ul>
+      </nav>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <!-- Search Trigger -->
+        <button type="button" class="icon-btn search-trigger-btn" id="search-trigger" aria-label="সার্চ বার খুলুন" title="অনুসন্ধান করুন (ক্লিক বা / চাপুন)">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+
+        <!-- Bookmarks Drawer Button -->
+        <button type="button" class="saved-items-btn" id="bookmarks-trigger" aria-label="সংরক্ষিত আইটেম দেখুন" title="বুকমার্ক তালিকা">
+          <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span class="saved-label">সংরক্ষিত</span>
+          <span class="saved-count-badge" id="bookmarks-count">0</span>
+        </button>
+
+        <!-- Light / Dark Mode Toggle -->
+        <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" aria-label="থিম পরিবর্তন করুন" title="লাইট / ডার্ক থিম বদলান">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button type="button" class="icon-btn mobile-menu-btn" id="mobile-menu-toggle" aria-label="মেনু খুলুন বা বন্ধ করুন" aria-expanded="false" aria-controls="mobile-nav">
+          <svg class="menu-open-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <svg class="menu-close-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer Navigation -->
+    <div class="mobile-nav-drawer" id="mobile-nav" aria-hidden="true">
+      <div class="container mobile-nav-content">
+        <ul class="mobile-nav-list">
+          <li><a href="index.html" class="mobile-nav-link active">Home</a></li>
+          <li><a href="news.html" class="mobile-nav-link">News</a></li>
+          <li><a href="prompts.html" class="mobile-nav-link">AI Prompts</a></li>
+          <li><a href="technology.html" class="mobile-nav-link">Technology</a></li>
+          <li><a href="books.html" class="mobile-nav-link">Free Books</a></li>
+          <li><a href="#about" class="mobile-nav-link">About Nexora</a></li>
+        </ul>
+        <div class="mobile-nav-footer">
+          <div class="mobile-tagline">Nexora — Discover What's Next.</div>
+          <button type="button" class="btn btn-secondary btn-full" id="mobile-bookmarks-trigger">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            সংরক্ষিত আইটেম দেখুন (<span id="mobile-bookmarks-count">0</span>)
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main id="main-content">
+    <!-- Hero Section with Dynamic 3s Slider -->
+    <section class="hero-section" id="hero">
+      <div class="container">
+        <!-- ============================================== -->
+        <!-- HERO SLIDER CAROUSEL (10-Second Auto Transition) -->
+        <!-- ============================================== -->
+        <div class="hero-slider-container" aria-label="সর্বশেষ পোস্ট স্লাইডার">
+          <div class="hero-slider-track">
+            <!-- Slide 1: Latest AI News Post -->
+            <div class="hero-slide active" data-index="0">
+              <img 
+                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1400&q=80" 
+                alt="টেস্ট-টাইম কম্পিউট স্কেলিং এআই পোস্টের ছবি" 
+                class="hero-slide-bg"
+              />
+              <div class="hero-slide-overlay"></div>
+              <div class="hero-slide-content">
+                <div class="hero-slide-text-group">
+                  <div class="hero-slide-badge">
+                    <span>● সর্বশেষ ব্রেকিং পোস্ট</span>
+                    <span>·</span>
+                    <span>কৃত্রিম বুদ্ধিমত্তা</span>
+                    <span>·</span>
+                    <span>৯ অক্টোবর, ২০২৬</span>
+                  </div>
+                  <h2 class="hero-slide-title">
+                    টেস্ট-টাইম কম্পিউট স্কেলিং: কৃত্রিম বুদ্ধিমত্তা মডেলের আকার নয়, যুক্তি ও চিন্তার গভীরতা বৃদ্ধি
+                  </h2>
+                  <p class="hero-slide-desc">
+                    মডেলের আকার ১০ গুণ বড় করার চেয়ে অনুমানের সময় যুক্তির ধাপ বাড়ালে দ্বিগুণ বেশি নির্ভুল ফল পাওয়া যায়। টেস্ট-টাইম স্কেলিং নিয়ে ফারহান তানভীরের বিশেষ বিশ্লেষণ।
+                  </p>
+                </div>
+                <div class="hero-slide-actions">
+                  <button type="button" class="btn btn-hero-explore" onclick="window.nexoraApp.openArticleReader('news-1')">
+                    <span>আরও পড়ুন (Read More)</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                  </button>
+                  <a href="news.html" class="btn btn-secondary">
+                    <span>সব সংবাদ দেখুন</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 2: Latest Cloud & Web News Post -->
+            <div class="hero-slide" data-index="1">
+              <img 
+                src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80" 
+                alt="WASI 0.2 ক্লাউড পোস্টের ছবি" 
+                class="hero-slide-bg"
+              />
+              <div class="hero-slide-overlay"></div>
+              <div class="hero-slide-content">
+                <div class="hero-slide-text-group">
+                  <div class="hero-slide-badge cyan">
+                    <span>● সর্বশেষ ক্লাউড পোস্ট</span>
+                    <span>·</span>
+                    <span>ওয়েব ও ক্লাউড</span>
+                    <span>·</span>
+                    <span>৭ অক্টোবর, ২০২৬</span>
+                  </div>
+                  <h2 class="hero-slide-title">
+                    ওয়েবঅ্যাসেম্বলি সিস্টেম ইন্টারফেস (WASI 0.2): মিলি-সেকেন্ডে ক্লাউড ফাংশন চালুর নতুন মানদণ্ড
+                  </h2>
+                  <p class="hero-slide-desc">
+                    WASI কম্পোনেন্ট মডেলের সুবাদে ভারী ডকার কন্টেইনার ছাড়াই সাব-মিলি-সেকেন্ড সময়ে নিরাপদ ও মেমোরি-আইসোলেটেড মাইক্রোসার্ভিস চালু করা সম্ভব হচ্ছে।
+                  </p>
+                </div>
+                <div class="hero-slide-actions">
+                  <button type="button" class="btn btn-hero-explore" onclick="window.nexoraApp.openArticleReader('news-2')">
+                    <span>আরও পড়ুন (Read More)</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                  </button>
+                  <a href="news.html" class="btn btn-secondary">
+                    <span>সব সংবাদ দেখুন</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 3: Latest Creative AI Prompt Post -->
+            <div class="hero-slide" data-index="2">
+              <img 
+                src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=1400&q=80" 
+                alt="সাইবারপাংক এআই প্রম্পটের ছবি" 
+                class="hero-slide-bg"
+              />
+              <div class="hero-slide-overlay"></div>
+              <div class="hero-slide-content">
+                <div class="hero-slide-text-group">
+                  <div class="hero-slide-badge purple">
+                    <span>● সর্বশেষ প্রম্পট পোস্ট</span>
+                    <span>·</span>
+                    <span>ছবি তৈরি</span>
+                    <span>·</span>
+                    <span>Midjourney / Flux.1</span>
+                  </div>
+                  <h2 class="hero-slide-title">
+                    সিনেমাটিক সাইবারপাংক মেট্রোপলিস ল্যান্ডস্কেপ প্রম্পট
+                  </h2>
+                  <p class="hero-slide-desc">
+                    উজ্জ্বল নিয়ন আলো, বৃষ্টির ভেজা রাস্তা ও ৩৫মিমি অ্যানামরফিক লেন্সের বাস্তবসম্মত আলোর প্রতিফলন সমৃদ্ধ রেডি-টু-ইউজ প্রম্পট টেমপ্লেট।
+                  </p>
+                </div>
+                <div class="hero-slide-actions">
+                  <button type="button" class="btn btn-hero-explore" onclick="window.nexoraApp.openPromptModal('prompt-1')">
+                    <span>আরও পড়ুন (Read More)</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  </button>
+                  <a href="prompts.html" class="btn btn-secondary">
+                    <span>সব প্রম্পট দেখুন</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 4: Latest Tech Guide Post -->
+            <div class="hero-slide" data-index="3">
+              <img 
+                src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1400&q=80" 
+                alt="লোকাল ফার্স্ট টেক পোস্টের ছবি" 
+                class="hero-slide-bg"
+              />
+              <div class="hero-slide-overlay"></div>
+              <div class="hero-slide-content">
+                <div class="hero-slide-text-group">
+                  <div class="hero-slide-badge">
+                    <span>● সর্বশেষ প্রযুক্তি গাইড</span>
+                    <span>·</span>
+                    <span>এআই ও সফটওয়্যার গাইড</span>
+                    <span>·</span>
+                    <span>৭ মিনিট পাঠ</span>
+                  </div>
+                  <h2 class="hero-slide-title">
+                    লোকাল-ফার্স্ট অ্যাপ্লিকেশন তৈরি: আধুনিক ওয়েবের টেকসই ব্লুপ্রিন্ট
+                  </h2>
+                  <p class="hero-slide-desc">
+                    সার্ভারের ওপর নির্ভরশীলতা কমিয়ে সিআরডিটি (CRDTs), ইনডেক্সড-ডিবি এবং অফলাইন ব্রাউজার মেমোরির মাধ্যমে শূন্য মিলিসেকেন্ড ল্যাটেন্সিতে অ্যাপ চালানোর কৌশল।
+                  </p>
+                </div>
+                <div class="hero-slide-actions">
+                  <button type="button" class="btn btn-hero-explore" onclick="window.nexoraApp.openTechReader('tech-1')">
+                    <span>আরও পড়ুন (Read More)</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                  </button>
+                  <a href="technology.html" class="btn btn-secondary">
+                    <span>সব প্রযুক্তি গাইড</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 5: Latest Free Classic Book Post -->
+            <div class="hero-slide" data-index="4">
+              <img 
+                src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1400&q=80" 
+                alt="ফ্রাঙ্কেনস্টাইন বইয়ের পোস্টের ছবি" 
+                class="hero-slide-bg"
+              />
+              <div class="hero-slide-overlay"></div>
+              <div class="hero-slide-content">
+                <div class="hero-slide-text-group">
+                  <div class="hero-slide-badge green">
+                    <span>● সর্বশেষ ফ্রি বই</span>
+                    <span>·</span>
+                    <span>পাবলিক ডোমেন ক্লাসিক</span>
+                    <span>·</span>
+                    <span>১৮১৮</span>
+                  </div>
+                  <h2 class="hero-slide-title">
+                    ফ্রাঙ্কেনস্টাইন (Frankenstein; or, The Modern Prometheus)
+                  </h2>
+                  <p class="hero-slide-desc">
+                    মেরি ওলস্টোনক্র্যাফট শেলির কালজয়ী বিজ্ঞান কল্পকাহিনী। বৈজ্ঞানিক অহংকার, নীতিবোধ ও সৃষ্টির প্রতি স্রষ্টার কর্তব্যের অমর আখ্যান।
+                  </p>
+                </div>
+                <div class="hero-slide-actions">
+                  <button type="button" class="btn btn-hero-explore" onclick="window.nexoraApp.openBookReader('book-1')">
+                    <span>আরও পড়ুন (Read More)</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  </button>
+                  <a href="books.html" class="btn btn-secondary">
+                    <span>ফ্রি বই লাইব্রেরি</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slider Controls -->
+          <button type="button" class="hero-slider-btn prev" id="hero-prev-btn" aria-label="পূর্ববর্তী স্লাইড">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button type="button" class="hero-slider-btn next" id="hero-next-btn" aria-label="পরবর্তী স্লাইড">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+          <!-- Dot Indicators (5 Latest Posts) -->
+          <div class="hero-slider-dots">
+            <button type="button" class="hero-dot active" data-slide="0" aria-label="পোস্ট ১"></button>
+            <button type="button" class="hero-dot" data-slide="1" aria-label="পোস্ট ২"></button>
+            <button type="button" class="hero-dot" data-slide="2" aria-label="পোস্ট ৩"></button>
+            <button type="button" class="hero-dot" data-slide="3" aria-label="পোস্ট ৪"></button>
+            <button type="button" class="hero-dot" data-slide="4" aria-label="পোস্ট ৫"></button>
+          </div>
+
+          <!-- Auto-slide 10s Progress Bar -->
+          <div class="hero-slider-progress">
+            <div class="hero-slider-progress-bar" id="hero-progress-bar"></div>
+          </div>
+        </div>
+
+        <!-- Central Search & Discovery Bar -->
+        <div class="hero-search-wrapper" id="global-search-container">
+          <form class="search-form" id="global-search-form" role="search">
+            <div class="search-input-group">
+              <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input 
+                type="search" 
+                id="global-search-input" 
+                class="search-input" 
+                placeholder="সংবাদ, এআই প্রম্পট, টেক গাইড কিংবা ফ্রি বই খুঁজুন..." 
+                autocomplete="off"
+                aria-label="Nexora কন্টেন্ট অনুসন্ধান"
+              />
+              <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="মুছে ফেলুন" style="display: none;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              <button type="submit" id="search-submit-btn" class="search-submit-btn" aria-label="অনুসন্ধান করুন">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>খুঁজুন</span>
+              </button>
+            </div>
+
+            <!-- Content Scope Filter Buttons -->
+            <div class="search-scope-tabs" role="tablist" aria-label="কন্টেন্টের ধরন অনুযায়ী ফিল্টার">
+              <button type="button" class="scope-tab active" data-scope="all" role="tab" aria-selected="true">সবকিছু</button>
+              <button type="button" class="scope-tab" data-scope="news" role="tab" aria-selected="false">সংবাদ</button>
+              <button type="button" class="scope-tab" data-scope="prompts" role="tab" aria-selected="false">এআই প্রম্পটস</button>
+              <button type="button" class="scope-tab" data-scope="tech" role="tab" aria-selected="false">প্রযুক্তি</button>
+              <button type="button" class="scope-tab" data-scope="books" role="tab" aria-selected="false">ফ্রি বই</button>
+            </div>
+          </form>
+
+          <!-- Live Search Results Dropdown -->
+          <div class="search-results-panel" id="search-results-panel" aria-live="polite" style="display: none;">
+            <div class="results-header">
+              <span class="results-count-text" id="search-results-count">০টি ফলাফল</span>
+              <button type="button" class="results-close-btn" id="close-search-panel">বন্ধ করুন</button>
+            </div>
+            <div class="results-list" id="search-results-list"></div>
+          </div>
+        </div>
+
+        <!-- Trending Topics Micro-Bar -->
+        <div class="hero-trending-bar">
+          <span class="trending-title">জনপ্রিয় বিষয়:</span>
+          <div class="trending-tags">
+            <button type="button" class="trending-link" data-search-term="কৃত্রিম বুদ্ধিমত্তা">কৃত্রিম বুদ্ধিমত্তা</button>
+            <button type="button" class="trending-link" data-search-term="ফ্লাক্স">Flux.1 প্রম্পট</button>
+            <button type="button" class="trending-link" data-search-term="ফ্রাঙ্কেনস্টাইন">ফ্রাঙ্কেনস্টাইন</button>
+            <button type="button" class="trending-link" data-search-term="লোকাল-ফার্স্ট">লোকাল-ফার্স্ট ওয়েব</button>
+            <button type="button" class="trending-link" data-search-term="পাইথন">পাইথন প্রোগ্রামিং</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Latest News Highlight -->
+    <section class="section news-section" id="news">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">তাজা খবর ও অগ্রগতি</span>
+            <h2 class="section-title">সর্বশেষ সংবাদ</h2>
+          </div>
+          <div class="section-meta-text">
+            প্রযুক্তি ও বৈজ্ঞানিক অগ্রগতির সবচেয়ে গুরুত্বপূর্ণ আপডেট।
+          </div>
+        </div>
+
+        <div class="cards-grid news-grid" id="news-grid">
+          <!-- Dynamically populated via script.js -->
+        </div>
+
+        <a href="news.html" class="section-more-link">
+          সবগুলো সংবাদ বিস্তারিত দেখুন (Dedicated News Page) →
+        </a>
+      </div>
+    </section>
+
+    <!-- Section 2: Popular AI Prompts Highlight -->
+    <section class="section prompts-section" id="prompts">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">ক্রিয়েটিভ প্রম্পট ইঞ্জিনিয়ারিং</span>
+            <h2 class="section-title">জনপ্রিয় এআই প্রম্পটস</h2>
+          </div>
+          <div class="section-meta-text">
+            ChatGPT, Midjourney, Claude ও AI Video-র জন্য এক ক্লিকে কপি করার মতো তৈরি প্রম্পট।
+          </div>
+        </div>
+
+        <div class="cards-grid prompts-grid" id="prompts-grid">
+          <!-- Dynamically populated via script.js -->
+        </div>
+
+        <a href="prompts.html" class="section-more-link">
+          সম্পূর্ণ প্রম্পট লাইব্রেরি ঘুরে দেখুন (Dedicated Prompts Page) →
+        </a>
+      </div>
+    </section>
+
+    <!-- Section 3: Technology Insights Highlight -->
+    <section class="section tech-section" id="technology">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">প্রকৌশল ও ডিজিটাল দিগন্ত</span>
+            <h2 class="section-title">প্রযুক্তি অন্তর্দৃষ্টি</h2>
+          </div>
+          <div class="section-meta-text">
+            গভীর ডেভেলপার গাইড, সফটওয়্যার টিপস এবং দরকারি আধুনিক টেকনোলজি টুলস।
+          </div>
+        </div>
+
+        <div class="cards-grid tech-grid" id="tech-grid">
+          <!-- Dynamically populated via script.js -->
+        </div>
+
+        <a href="technology.html" class="section-more-link">
+          সবগুলো প্রযুক্তি গাইড ও টিউটোরিয়াল দেখুন (Dedicated Tech Page) →
+        </a>
+      </div>
+    </section>
+
+    <!-- Section 4: Free Books Highlight -->
+    <section class="section books-section" id="books">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-kicker">উন্মুক্ত জ্ঞান ও ক্লাসিক সাহিত্য</span>
+            <h2 class="section-title">ফ্রি বই লাইব্রেরি</h2>
+          </div>
+          <div class="section-meta-text">
+            আইনগতভাবে মুক্ত ও পাবলিক ডোমেন সাহিত্য। সরাসরি ব্রাউজারে পড়ুন অথবা মূল সংগ্রহশালা থেকে সংগ্রহ করুন।
+          </div>
+        </div>
+
+        <div class="cards-grid books-grid" id="books-grid">
+          <!-- Dynamically populated via script.js -->
+        </div>
+
+        <a href="books.html" class="section-more-link">
+          ফ্রি বইয়ের সম্পূর্ণ ক্যাটালগ দেখুন (Dedicated Books Page) →
+        </a>
+      </div>
+    </section>
+
+    <!-- Section: About Nexora -->
+    <section class="section about-section" id="about">
+      <div class="container">
+        <div class="about-grid">
+          <div class="about-narrative">
+            <span class="section-kicker">আমাদের লক্ষ্য ও আদর্শ</span>
+            <h2 class="section-title">কৌতূহলী মনের ডিজিটাল সহযাত্রী</h2>
+            <p class="about-lead">
+              ডিজিটাল কোলাহলের এই যুগে প্রযুক্তিপ্রেমী ও সৃজনশীল মানুষদের দরকার এমন একটি প্ল্যাটফর্ম, যেখানে অপ্রয়োজনীয় গুঞ্জনের বদলে খাঁটি জ্ঞান ও দিকনির্দেশনা পাওয়া যাবে।
+            </p>
+            <p class="about-text">
+              আমরা চারটি গুরুত্বপূর্ণ ভিত্তিকে একত্রিত করেছি: যাচাইকৃত প্রযুক্তি সংবাদ, সৃষ্টিশীল এআই প্রম্পটস, গভীর সফটওয়্যার ইঞ্জিনিয়ারিং গাইড এবং কপিরাইট-মুক্ত বিশ্বসাহিত্য।
+            </p>
+
+            <div class="about-values-list">
+              <div class="value-item">
+                <div class="value-icon">০১</div>
+                <div>
+                  <h4 class="value-title">উন্মুক্ত ও বৈধ জ্ঞান</h4>
+                  <p class="value-desc">Nexora-র প্রতিটি ফ্রি বই এবং প্রম্পট উন্মুক্ত লাইসেন্সপ্রাপ্ত ও শতভাগ বৈধ। কোনো গোপন পে-ওয়াল নেই।</p>
+                </div>
+              </div>
+              <div class="value-item">
+                <div class="value-icon">০২</div>
+                <div>
+                  <h4 class="value-title">ক্লিকবেইট-মুক্ত সম্পাদকীয় নীতি</h4>
+                  <p class="value-desc">অবাস্তব গুজব নয়, আমরা গুরুত্ব দিই প্রযুক্তিগত সত্যতা ও বাস্তব কার্যক্ষমতার ওপর।</p>
+                </div>
+              </div>
+              <div class="value-item">
+                <div class="value-icon">০৩</div>
+                <div>
+                  <h4 class="value-title">দ্রুতগতির ভ্যানিলা আর্কিটেকচার</h4>
+                  <p class="value-desc">বিশুদ্ধ HTML5, আধুনিক CSS3 এবং ভ্যানিলা জাভাস্ক্রিপ্ট দিয়ে তৈরি, যা যেকোনো ডিভাইসে বিদ্যুৎগতিতে লোড হয়।</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-stats-panel">
+            <div class="stats-box">
+              <div class="stat-number">১০০%</div>
+              <div class="stat-label">ভ্যানিলা কোডবেস</div>
+              <div class="stat-sub">ভারী ফ্রেমওয়ার্ক ছাড়া তাৎক্ষণিক ব্রাউজার এক্সিকিউশন</div>
+            </div>
+            <div class="stats-box">
+              <div class="stat-number">৪+</div>
+              <div class="stat-label">মূল কন্টেন্ট ক্যাটাগরি</div>
+              <div class="stat-sub">সংবাদ, এআই প্রম্পটস, প্রযুক্তি গাইড ও ক্লাসিক সাহিত্য</div>
+            </div>
+            <div class="stats-box">
+              <div class="stat-number">ফ্রি</div>
+              <div class="stat-label">পাবলিক ডোমেন বই</div>
+              <div class="stat-sub">মানবতার উন্মুক্ত ঐতিহ্য ও জ্ঞানভাণ্ডার</div>
+            </div>
+            <div class="stats-box">
+              <div class="stat-number">অফলাইন</div>
+              <div class="stat-label">বুকমার্কস পারসিস্টেন্স</div>
+              <div class="stat-sub">আপনার ব্রাউজারে সংরক্ষিত থাকে সব প্রিয় প্রম্পট</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="container footer-top">
+      <!-- Footer Brand Column with English Name: Nexora -->
+      <div class="footer-col brand-col">
+        <a href="index.html" class="brand-link footer-brand">
+          <div class="brand-logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="28" height="28" fill="none">
+              <rect width="40" height="40" rx="8" fill="#1C2541" />
+              <path d="M10 30V10L20 20V30H10Z" fill="#00F0FF" />
+              <path d="M20 10L30 20V30L20 20V10Z" fill="#8B5CF6" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">Nexora</span>
+            <span class="brand-tagline">Discover What's Next.</span>
+          </div>
+        </a>
+        <p class="footer-bio">
+          সংবাদ, জেনারেটিভ এআই প্রম্পটস, সফটওয়্যার ইঞ্জিনিয়ারিং গাইড ও উন্মুক্ত সাহিত্যের বিশ্বস্ত ঠিকানা।
+        </p>
+        <!-- Social Icons -->
+        <div class="social-links" aria-label="সোশ্যাল মিডিয়া প্রোফাইল">
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="Twitter">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer Quick Links -->
+      <div class="footer-col">
+        <h3 class="footer-heading">আলাদা পেজসমূহ</h3>
+        <ul class="footer-links">
+          <li><a href="index.html">হোমপেজ</a></li>
+          <li><a href="news.html">সংবাদ পেজ (News)</a></li>
+          <li><a href="prompts.html">এআই প্রম্পটস (Prompts)</a></li>
+          <li><a href="technology.html">প্রযুক্তি পেজ (Technology)</a></li>
+          <li><a href="books.html">ফ্রি বই লাইব্রেরি (Books)</a></li>
+        </ul>
+      </div>
+
+      <!-- Footer Categories -->
+      <div class="footer-col">
+        <h3 class="footer-heading">জনপ্রিয় ক্যাটাগরি</h3>
+        <ul class="footer-links">
+          <li><a href="prompts.html">ছবি তৈরির প্রম্পটস</a></li>
+          <li><a href="prompts.html">ChatGPT ও রিজনিং গাইড</a></li>
+          <li><a href="technology.html">লোকাল-ফার্স্ট সফটওয়্যার</a></li>
+          <li><a href="books.html">সায়েন্স ফিকশন ক্লাসিক</a></li>
+        </ul>
+      </div>
+
+      <!-- Footer Legal & Contact -->
+      <div class="footer-col">
+        <h3 class="footer-heading">নীতিমালা ও যোগাযোগ</h3>
+        <ul class="footer-links">
+          <li><button type="button" class="footer-dialog-link" onclick="window.nexoraApp.openModal('about-modal')">আমাদের সম্পর্কে</button></li>
+          <li><button type="button" class="footer-dialog-link" onclick="window.nexoraApp.openModal('contact-modal')">যোগাযোগ ও মতামত</button></li>
+          <li><button type="button" class="footer-dialog-link" onclick="window.nexoraApp.openModal('privacy-modal')">গোপনীয়তা নীতি</button></li>
+          <li><button type="button" class="footer-dialog-link" onclick="window.nexoraApp.openModal('terms-modal')">ব্যবহারের শর্তাবলী</button></li>
+          <li><button type="button" class="footer-dialog-link footer-admin-link" onclick="window.nexoraApp.openAdminPanel()">⚙️ অ্যাডমিন প্যানেল</button></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Bottom Bar -->
+    <div class="container footer-bottom">
+      <div class="footer-copy">
+        &copy; ২০২৬ Nexora. All rights reserved. "Discover What's Next."
+      </div>
+      <div class="footer-admin-bar">
+        <button type="button" class="btn-footer-admin" onclick="window.nexoraApp.openAdminPanel()" aria-label="অ্যাডমিন প্যানেল খুলুন">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+          </svg>
+          <span>অ্যাডমিন প্যানেল (Admin Panel)</span>
+        </button>
+      </div>
+      <div class="footer-extra">
+        সেম্যান্টিক HTML5, খাঁটি CSS3 এবং ভ্যানিলা জাভাস্ক্রিপ্টে নির্মিত।
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================== -->
+  <!-- MODAL DIALOGS & DRAWERS                        -->
+  <!-- ============================================== -->
+
+  <!-- Universal Content Reader Modal -->
+  <div class="modal-backdrop" id="reader-modal" role="dialog" aria-modal="true" aria-labelledby="reader-title" aria-hidden="true">
+    <div class="modal-container reader-modal-container">
+      <div class="modal-header">
+        <div class="reader-meta-kicker" id="reader-kicker">সংবাদ ও বিশ্লেষণ</div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('reader-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body reader-body" id="reader-modal-body"></div>
+      <div class="modal-footer reader-footer">
+        <div class="reader-footer-actions">
+          <button type="button" class="btn btn-secondary" id="reader-bookmark-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span id="reader-bookmark-text">বুকমার্কে রাখুন</span>
+          </button>
+          <button type="button" class="btn btn-ghost" id="reader-copy-link-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            <span>লিংক শেয়ার</span>
+          </button>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('reader-modal')">পড়া শেষ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt Modal -->
+  <div class="modal-backdrop" id="prompt-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container prompt-modal-container">
+      <div class="modal-header">
+        <div>
+          <span class="meta-tag cyan" id="prompt-modal-cat">এআই প্রম্পট</span>
+          <h3 class="modal-heading" id="prompt-modal-title">প্রম্পটের বিবরণ</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('prompt-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="prompt-modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="prompt-modal-bookmark-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          <span id="prompt-modal-bookmark-text">প্রম্পট সংরক্ষণ</span>
+        </button>
+        <button type="button" class="btn btn-primary" id="prompt-modal-copy-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span>সম্পূর্ণ প্রম্পট কপি</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Reader Modal -->
+  <div class="modal-backdrop" id="book-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container book-modal-container">
+      <div class="modal-header">
+        <div>
+          <span class="meta-tag purple" id="book-modal-license">পাবলিক ডোমেন ক্লাসিক</span>
+          <h3 class="modal-heading" id="book-modal-title">বইয়ের পাঠকক্ষ</h3>
+          <div class="book-modal-author" id="book-modal-author">লেখক</div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('book-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body book-reader-body" id="book-modal-body"></div>
+      <div class="modal-footer book-reader-footer">
+        <div class="book-external-actions" id="book-external-actions"></div>
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('book-modal')">বন্ধ করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Drawer -->
+  <div class="drawer-backdrop" id="bookmarks-drawer" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="drawer-container">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          <h3 class="drawer-heading">সংরক্ষিত আইটেম</h3>
+          <span class="drawer-count-badge" id="drawer-items-count">0</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeDrawer()" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="drawer-tabs">
+        <button type="button" class="drawer-tab active" data-drawer-tab="all">সব (<span id="count-drawer-all">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="prompt">প্রম্পট (<span id="count-drawer-prompts">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="article">নিবন্ধ (<span id="count-drawer-articles">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="book">বই (<span id="count-drawer-books">0</span>)</button>
+      </div>
+
+      <div class="drawer-body" id="bookmarks-drawer-body"></div>
+
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-ghost btn-sm" id="clear-all-bookmarks-btn">সব মুছুন</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.nexoraApp.closeDrawer()">সম্পন্ন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal-backdrop" id="about-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-heading">About Nexora</h3>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('about-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body static-modal-body">
+        <h4>Discover What's Next</h4>
+        <p>Nexora is an independent digital magazine and open knowledge platform curated for software engineers, digital creators, researchers, and lifelong readers.</p>
+        
+        <h4>Editorial Integrity</h4>
+        <p>We do not publish sensationalist rumors or clickbait. Every tech insight and prompt is vetted for practical real-world utility.</p>
+
+        <h4>Public Domain Literature</h4>
+        <p>Our free digital books library respects intellectual property laws. Every book is either in the global public domain or released under Creative Commons licenses.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('about-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div class="modal-backdrop" id="contact-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-heading">Contact Nexora Team</h3>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('contact-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="contact-form" id="contact-form" onsubmit="window.nexoraApp.handleContactSubmit(event)">
+          <div class="form-group">
+            <label for="contact-name" class="form-label">Full Name</label>
+            <input type="text" id="contact-name" class="form-input" required placeholder="Alex Mercer" />
+          </div>
+          <div class="form-group">
+            <label for="contact-email" class="form-label">Email Address</label>
+            <input type="email" id="contact-email" class="form-input" required placeholder="alex@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="contact-topic" class="form-label">Subject</label>
+            <select id="contact-topic" class="form-input">
+              <option value="editorial">Editorial Pitch or Correction</option>
+              <option value="prompt">Submit Prompt Template</option>
+              <option value="book">Public Domain Book Suggestion</option>
+              <option value="general">General Feedback</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="contact-message" class="form-label">Message</label>
+            <textarea id="contact-message" class="form-input" rows="4" required placeholder="Write your message..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div class="modal-backdrop" id="privacy-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-heading">Privacy Policy</h3>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('privacy-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body static-modal-body">
+        <p><strong>Last Updated: October 2026</strong></p>
+        <p>At Nexora, we respect your privacy. We do not sell or monetize personal browsing history.</p>
+        <h4>1. Local Storage</h4>
+        <p>Nexora uses browser <code>localStorage</code> strictly for theme preferences and saved bookmarks on your personal device.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('privacy-modal')">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms Modal -->
+  <div class="modal-backdrop" id="terms-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-heading">Terms of Use</h3>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('terms-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body static-modal-body">
+        <p><strong>Effective Date: October 2026</strong></p>
+        <h4>1. AI Prompts License</h4>
+        <p>All AI prompt templates on Nexora are offered under CC0 public dedication for commercial and non-commercial workflows.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('terms-modal')">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Universal Admin Control Panel Modal -->
+  <div class="modal-backdrop admin-modal-backdrop" id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title" aria-hidden="true">
+    <div class="modal-container admin-modal-container">
+      <div class="modal-header admin-modal-header">
+        <div class="admin-header-title-wrap">
+          <div class="admin-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>সাইট কন্ট্রোল প্যানেল</span>
+          </div>
+          <h3 class="modal-heading" id="admin-panel-title">Nexora অ্যাডমিন ড্যাশবোর্ড (Admin Panel)</h3>
+          <p class="admin-subheading">সাইটের পোস্ট তৈরি, সম্পাদনা, মুছে ফেলা ও ক্যাটাগরি ব্যবস্থাপনা করুন</p>
+        </div>
+        <div class="admin-header-actions">
+          <div class="admin-user-pill" title="লগইনকৃত অ্যাডমিন">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>admin@nexora</span>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.resetAllPostsToDefault()" title="ডিফল্ট ডেটায় রিসেট করুন">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            <span>ডিফল্ট রিসেট</span>
+          </button>
+          <button type="button" class="btn-admin-logout btn-admin" onclick="window.nexoraApp.adminLogout()" title="লগআউট করুন">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>লগআউট</span>
+          </button>
+          <button type="button" class="modal-close-btn btn-admin" onclick="window.nexoraApp.closeModal('admin-modal')" aria-label="বন্ধ করুন">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats Counter Bar -->
+      <div class="admin-stats-strip">
+        <div class="admin-stat-chip">
+          <span class="stat-chip-label">মোট পোস্ট:</span>
+          <strong id="admin-stat-total" class="stat-chip-val cyan">0</strong>
+        </div>
+        <div class="admin-stat-chip">
+          <span class="stat-chip-label">📰 সংবাদ:</span>
+          <strong id="admin-stat-news" class="stat-chip-val">0</strong>
+        </div>
+        <div class="admin-stat-chip">
+          <span class="stat-chip-label">🤖 এআই প্রম্পট:</span>
+          <strong id="admin-stat-prompts" class="stat-chip-val purple">0</strong>
+        </div>
+        <div class="admin-stat-chip">
+          <span class="stat-chip-label">💻 প্রযুক্তি:</span>
+          <strong id="admin-stat-tech" class="stat-chip-val">0</strong>
+        </div>
+        <div class="admin-stat-chip">
+          <span class="stat-chip-label">📚 ফ্রি বই:</span>
+          <strong id="admin-stat-books" class="stat-chip-val orange">0</strong>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="admin-tabs-nav">
+        <button type="button" class="admin-tab-btn active" id="tab-btn-posts-list" onclick="window.nexoraApp.switchAdminTab('list')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          <span>পোস্ট তালিকা ও ব্যবস্থাপনা</span>
+          <span class="admin-badge-count" id="admin-list-count">0</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-create-post" onclick="window.nexoraApp.switchAdminTab('form')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <span id="admin-form-tab-label">নতুন পোস্ট তৈরি করুন</span>
+        </button>
+      </div>
+
+      <div class="modal-body admin-modal-body">
+        <!-- VIEW 1: Posts List View -->
+        <div class="admin-tab-pane active" id="admin-pane-list">
+          <!-- Filter & Search Toolbar -->
+          <div class="admin-toolbar">
+            <div class="admin-filter-pills" id="admin-category-filters">
+              <button type="button" class="admin-pill active" data-type="all" onclick="window.nexoraApp.filterAdminList('all')">সবগুলো</button>
+              <button type="button" class="admin-pill" data-type="news" onclick="window.nexoraApp.filterAdminList('news')">📰 সংবাদ</button>
+              <button type="button" class="admin-pill" data-type="prompts" onclick="window.nexoraApp.filterAdminList('prompts')">🤖 প্রম্পটস</button>
+              <button type="button" class="admin-pill" data-type="tech" onclick="window.nexoraApp.filterAdminList('tech')">💻 প্রযুক্তি</button>
+              <button type="button" class="admin-pill" data-type="books" onclick="window.nexoraApp.filterAdminList('books')">📚 ফ্রি বই</button>
+            </div>
+            <div class="admin-search-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="admin-search-input" placeholder="পোস্টের শিরোনাম বা ক্যাটাগরি দিয়ে খুঁজুন..." oninput="window.nexoraApp.onAdminSearch(this.value)" />
+            </div>
+            <button type="button" class="btn btn-primary btn-sm btn-admin" onclick="window.nexoraApp.startCreateNewPost()">
+              <span>+ নতুন পোস্ট</span>
+            </button>
+          </div>
+
+          <!-- Table / List of Posts -->
+          <div class="admin-posts-container" id="admin-posts-container">
+            <!-- Dynamically populated via renderAdminPostList() -->
+          </div>
+        </div>
+
+        <!-- VIEW 2: Create / Edit Post Form View -->
+        <div class="admin-tab-pane" id="admin-pane-form">
+          <form class="admin-post-form" id="admin-post-form" onsubmit="window.nexoraApp.handleAdminFormSubmit(event)">
+            <input type="hidden" id="post-form-edit-id" value="" />
+            <input type="hidden" id="post-form-original-type" value="" />
+
+            <div class="admin-form-alert" id="admin-form-mode-banner" style="display: none;">
+              <span id="admin-form-mode-text">পোস্ট সম্পাদনা মোড সক্রিয়</span>
+              <button type="button" class="btn btn-ghost btn-xs btn-admin" onclick="window.nexoraApp.cancelEditPost()">বাতিল করে নতুনে ফিরুন</button>
+            </div>
+
+            <!-- Post Category / Type Selection -->
+            <div class="form-section-group">
+              <label class="form-section-heading">১. পোস্টের ধরন ও ক্যাটাগরি নির্বাচন করুন *</label>
+              <div class="admin-type-selector">
+                <label class="type-radio-card">
+                  <input type="radio" name="admin_post_type" value="news" checked onchange="window.nexoraApp.onPostTypeChange('news')" />
+                  <div class="type-radio-content">
+                    <span class="type-icon">📰</span>
+                    <span class="type-title">সংবাদ (News)</span>
+                    <span class="type-sub">ব্রেকিং খবর ও বিশ্লেষণ</span>
+                  </div>
+                </label>
+                <label class="type-radio-card">
+                  <input type="radio" name="admin_post_type" value="prompts" onchange="window.nexoraApp.onPostTypeChange('prompts')" />
+                  <div class="type-radio-content">
+                    <span class="type-icon">🤖</span>
+                    <span class="type-title">এআই প্রম্পট (AI Prompt)</span>
+                    <span class="type-sub">ইমেজ ও এলএলএম টেমপ্লেট</span>
+                  </div>
+                </label>
+                <label class="type-radio-card">
+                  <input type="radio" name="admin_post_type" value="tech" onchange="window.nexoraApp.onPostTypeChange('tech')" />
+                  <div class="type-radio-content">
+                    <span class="type-icon">💻</span>
+                    <span class="type-title">প্রযুক্তি গাইড (Technology)</span>
+                    <span class="type-sub">টিউটোরিয়াল ও কোড গাইড</span>
+                  </div>
+                </label>
+                <label class="type-radio-card">
+                  <input type="radio" name="admin_post_type" value="books" onchange="window.nexoraApp.onPostTypeChange('books')" />
+                  <div class="type-radio-content">
+                    <span class="type-icon">📚</span>
+                    <span class="type-title">ফ্রি বই (Free Book)</span>
+                    <span class="type-sub">পাবলিক ডোমেন ক্লাসিক সাহিত্য</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- General Fields: Title & Sub-Category -->
+            <div class="form-section-group">
+              <label class="form-section-heading">২. সাধারণ বিবরণ (General Details)</label>
+              
+              <div class="form-group">
+                <label for="post-field-title" class="form-label">পোস্ট শিরোনাম (Title) *</label>
+                <input type="text" id="post-field-title" class="form-input" required placeholder="পোস্টের আকর্ষণীয় শিরোনাম লিখুন..." />
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label for="post-field-category" class="form-label">উপ-ক্যাটাগরি (Sub-category) *</label>
+                  <input type="text" id="post-field-category" class="form-input" required placeholder="যেমন: কৃত্রিম বুদ্ধিমত্তা, বিজ্ঞান, সাইবার নিরাপত্তা..." />
+                  <div class="category-suggestions" id="category-suggestions">
+                    <!-- Quick chips inserted dynamically -->
+                  </div>
+                </div>
+
+                <div class="form-group" id="group-author-tool">
+                  <label for="post-field-author-tool" class="form-label" id="label-author-tool">লেখক (Author)</label>
+                  <input type="text" id="post-field-author-tool" class="form-input" placeholder="লেখকের নাম..." />
+                </div>
+              </div>
+
+              <!-- Image URL & Presets -->
+              <div class="form-group">
+                <label for="post-field-image" class="form-label" id="label-post-image">ছবি / কভার ইমেজ লিংক (Image URL)</label>
+                <div class="image-url-input-wrap">
+                  <input type="url" id="post-field-image" class="form-input" placeholder="https://images.unsplash.com/..." />
+                  <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.previewFormImage()">প্রিভিউ দেখুন</button>
+                </div>
+                <div class="image-presets-row">
+                  <span class="preset-label">দ্রুত ছবির লিংক বাছাই:</span>
+                  <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')">এআই ও নিউরাল</button>
+                  <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80')">কোডিং ও ডেভ</button>
+                  <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80')">ক্লাউড ও সার্ভার</button>
+                  <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80')">সিকিউরিটি</button>
+                  <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80')">বই ও সাহিত্য</button>
+                </div>
+                <div id="image-preview-box" class="image-preview-box" style="display:none;"></div>
+              </div>
+            </div>
+
+            <!-- Dynamic Fields per Category -->
+            <div class="form-section-group">
+              <label class="form-section-heading">৩. পোস্টের কন্টেন্ট ও বিশেষ তথ্য (Content Details)</label>
+              
+              <!-- News & Tech Meta -->
+              <div class="form-grid-2" id="group-readtime-date">
+                <div class="form-group" id="group-readtime">
+                  <label for="post-field-readtime" class="form-label">পড়ার সময় (Read Time)</label>
+                  <input type="text" id="post-field-readtime" class="form-input" placeholder="যেমন: ৫ মিনিট পাঠ" value="৫ মিনিট পাঠ" />
+                </div>
+                <div class="form-group" id="group-date">
+                  <label for="post-field-date" class="form-label">তারিখ (Date)</label>
+                  <input type="text" id="post-field-date" class="form-input" placeholder="যেমন: ৯ অক্টোবর, ২০২৬" />
+                </div>
+              </div>
+
+              <!-- Books Extra Fields -->
+              <div class="form-grid-3" id="group-book-fields" style="display:none;">
+                <div class="form-group">
+                  <label for="post-field-book-year" class="form-label">প্রকাশের সাল</label>
+                  <input type="text" id="post-field-book-year" class="form-input" placeholder="যেমন: ১৮১৮ বা ১৯০৯" />
+                </div>
+                <div class="form-group">
+                  <label for="post-field-book-license" class="form-label">লাইসেন্স</label>
+                  <input type="text" id="post-field-book-license" class="form-input" placeholder="পাবলিক ডোমেন (উন্মুক্ত স্বত্ব)" value="পাবলিক ডোমেন (উন্মুক্ত স্বত্ব)" />
+                </div>
+                <div class="form-group">
+                  <label for="post-field-book-url" class="form-label">মূল সোর্স / গুটেনবার্গ লিংক</label>
+                  <input type="url" id="post-field-book-url" class="form-input" placeholder="https://www.gutenberg.org/..." />
+                </div>
+              </div>
+
+              <!-- Excerpt / Summary / Prompt Desc -->
+              <div class="form-group" id="group-excerpt">
+                <label for="post-field-excerpt" class="form-label" id="label-excerpt">সংক্ষিপ্ত সারসংক্ষেপ (Excerpt) *</label>
+                <textarea id="post-field-excerpt" class="form-input" rows="3" required placeholder="সংক্ষিপ্ত ২-৩ লাইনের বর্ণনা..."></textarea>
+              </div>
+
+              <!-- Prompt Specific Textbox -->
+              <div class="form-group" id="group-prompt-text" style="display:none;">
+                <label for="post-field-prompt-text" class="form-label">মূল প্রম্পট টেক্সট (Prompt Text) *</label>
+                <textarea id="post-field-prompt-text" class="form-input font-mono" rows="4" placeholder="এআই-তে পেস্ট করার মূল প্রম্পট লিখুন..."></textarea>
+              </div>
+
+              <div class="form-group" id="group-prompt-tips" style="display:none;">
+                <label for="post-field-prompt-tips" class="form-label">ব্যবহারের টিপস বা নির্দেশনা</label>
+                <input type="text" id="post-field-prompt-tips" class="form-input" placeholder="যেমন: সিনেম্যাটিক রেজাল্ট পেতে ১৬:৯ অ্যাসপেক্ট রেশিও দিন..." />
+              </div>
+
+              <!-- Main Full Article / Guide / Book Chapter Content -->
+              <div class="form-group" id="group-full-content">
+                <label for="post-field-content" class="form-label" id="label-full-content">সম্পূর্ণ বিস্তারিত কন্টেন্ট (Full Content) *</label>
+                <div class="content-help-text">প্যারাগ্রাফ ও সাব-হেডিং লিখতে পারেন। সাধারণ টেক্সট লিখলে স্বয়ংক্রিয়ভাবে প্যারাগ্রাফে রূপান্তর হবে, অথবা &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt; ইত্যাদি HTML ট্যাগ ব্যবহার করতে পারেন।</div>
+                <textarea id="post-field-content" class="form-input" rows="7" placeholder="পোস্টের সম্পূর্ণ বডি কন্টেন্ট লিখুন..."></textarea>
+              </div>
+            </div>
+
+            <!-- Form Action Buttons -->
+            <div class="admin-form-actions">
+              <button type="button" class="btn btn-ghost btn-admin" onclick="window.nexoraApp.resetAdminForm()">ফর্ম খালি করুন</button>
+              <button type="submit" class="btn btn-primary btn-admin" id="btn-submit-post">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="btn-submit-post-label">পোস্ট সংরক্ষণ ও প্রকাশ করুন</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-footer admin-modal-footer">
+        <div class="admin-footer-tip">
+          <span>💡 নতুন যোগ করা বা এডিট করা পোস্ট স্বয়ংক্রিয়ভাবে ব্রাউজারে সংরক্ষিত হয় এবং তাৎক্ষণিকভাবে মূল সাইটে প্রদর্শিত হয়।</span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-admin" onclick="window.nexoraApp.closeModal('admin-modal')">বন্ধ করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Authentication Login Modal -->
+  <div class="modal-backdrop admin-modal-backdrop" id="admin-login-modal" role="dialog" aria-modal="true" aria-labelledby="admin-login-title" aria-hidden="true">
+    <div class="modal-container admin-login-container">
+      <div class="modal-header admin-login-header">
+        <div>
+          <div class="admin-badge">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>নিরাপদ অ্যাডমিন অ্যাক্সেস</span>
+          </div>
+          <h3 class="modal-heading" id="admin-login-title" style="margin-top: 6px;">অ্যাডমিন লগইন (Admin Login)</h3>
+          <p class="admin-subheading">সাইট কন্ট্রোল প্যানেলে ঢুকতে ক্রেডেনশিয়াল দিন</p>
+        </div>
+        <button type="button" class="modal-close-btn btn-admin" onclick="window.nexoraApp.closeModal('admin-login-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body admin-login-body">
+        <form class="admin-login-form" id="admin-login-form" onsubmit="window.nexoraApp.handleAdminLoginSubmit(event)">
+          <div class="admin-login-error" id="admin-login-error">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span id="admin-login-error-msg">ভুল ইউজারনেম বা পাসওয়ার্ড! আবার চেষ্টা করুন।</span>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-login-username" class="form-label">ব্যবহারকারীর নাম (Username / Email) *</label>
+            <input type="text" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="admin@nexora" />
+          </div>
+
+          <div class="form-group">
+            <label for="admin-login-password" class="form-label">গোপন পাসওয়ার্ড (Password) *</label>
+            <div class="password-input-wrap">
+              <input type="password" id="admin-login-password" class="form-input" required autocomplete="current-password" placeholder="পাসওয়ার্ড লিখুন..." />
+              <button type="button" class="btn-password-toggle btn-admin" onclick="window.nexoraApp.togglePasswordVisibility('admin-login-password')" aria-label="পাসওয়ার্ড দেখুন">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" id="pw-toggle-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full btn-admin" id="btn-submit-login" style="margin-top: 6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            <span>লগইন করুন ও প্রবেশ করুন</span>
+          </button>
+
+          <p class="admin-login-note">
+            অননুমোদিত প্রবেশ নিষিদ্ধ। সংরক্ষিত শুধুমাত্র নির্ধারিত অ্যাডমিনিস্ট্রেটরের জন্য।
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal (Reliable in iFrame) -->
+  <div class="modal-backdrop admin-modal-backdrop" id="delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-title" aria-hidden="true">
+    <div class="modal-container admin-confirm-container">
+      <div class="admin-confirm-body">
+        <div class="confirm-icon-wrap">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        </div>
+        <h3 class="confirm-title" id="confirm-delete-title">পোস্ট মুছে ফেলতে চান?</h3>
+        <p class="confirm-desc">
+          আপনি কি নিশ্চিতভাবে এই পোস্টটি চিরতরে মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা সম্ভব হবে না।
+          <span class="confirm-item-name" id="confirm-delete-post-title"></span>
+        </p>
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-secondary btn-admin" onclick="window.nexoraApp.closeModal('delete-confirm-modal')">বাতিল</button>
+          <button type="button" class="btn-danger btn-admin" id="btn-confirm-delete-action" onclick="window.nexoraApp.executeConfirmedDelete()">হ্যাঁ, মুছে ফেলুন</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vanilla JavaScript -->
+  <script src="./script.js"></script>
+</body>
+</html>

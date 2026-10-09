@@ -1,0 +1,6 @@
+{
+  "name": "Nexora – Discover What's Next",
+  "description": "Nexora is your digital destination for the latest news, creative AI prompts, useful technology insights, and free books. Discover new ideas, explore knowledge, and stay ahead of the trends.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

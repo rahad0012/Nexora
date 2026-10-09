@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>প্রযুক্তি অন্তর্দৃষ্টি ও ডেভেলপার গাইড – নেক্সোরা (Nexora Technology)</title>
+  <meta name="description" content="লোকাল-ফার্স্ট আর্কিটেকচার, স্মল ল্যাঙ্গুয়েজ মডেল, আধুনিক সিএসএস গ্রিড এবং সাইবার সিকিউরিটি গাইড।" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230A0F1D'/><circle cx='50' cy='50' r='30' fill='%2300F0FF'/></svg>" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">মূল কন্টেন্টে যান</a>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Header -->
+  <header class="site-header" id="site-header">
+    <div class="header-inner container">
+      <a href="index.html" class="brand-link">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
+            <rect width="40" height="40" rx="10" fill="#1C2541" />
+            <path d="M10 30V10L20 20V30H10Z" fill="#00F0FF" />
+            <path d="M20 10L30 20V30L20 20V10Z" fill="#8B5CF6" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Nexora</span>
+          <span class="brand-tagline">Discover What's Next.</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" aria-label="প্রধান নেভিগেশন">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">হোম</a></li>
+          <li><a href="news.html" class="nav-link">সংবাদ</a></li>
+          <li><a href="prompts.html" class="nav-link">এআই প্রম্পটস</a></li>
+          <li><a href="technology.html" class="nav-link active">প্রযুক্তি</a></li>
+          <li><a href="books.html" class="nav-link">ফ্রি বই</a></li>
+          <li><a href="index.html#about" class="nav-link">আমাদের সম্পর্কে</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="saved-items-btn" id="bookmarks-trigger" aria-label="বুকমার্ক দেখুন">
+          <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          <span class="saved-label">সংরক্ষিত</span>
+          <span class="saved-count-badge" id="bookmarks-count">0</span>
+        </button>
+
+        <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" aria-label="থিম পরিবর্তন">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <button type="button" class="icon-btn mobile-menu-btn" id="mobile-menu-toggle" aria-label="মোবাইল মেনু">
+          <svg class="menu-open-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <svg class="menu-close-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-nav-drawer" id="mobile-nav" aria-hidden="true">
+      <div class="container mobile-nav-content">
+        <ul class="mobile-nav-list">
+          <li><a href="index.html" class="mobile-nav-link">হোম (Home)</a></li>
+          <li><a href="news.html" class="mobile-nav-link">সংবাদ (News)</a></li>
+          <li><a href="prompts.html" class="mobile-nav-link">এআই প্রম্পটস (Prompts)</a></li>
+          <li><a href="technology.html" class="mobile-nav-link active">প্রযুক্তি গাইড (Technology)</a></li>
+          <li><a href="books.html" class="mobile-nav-link">ফ্রি বই লাইব্রেরি (Books)</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Hero Banner -->
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="container">
+        <div class="page-breadcrumb">
+          <a href="index.html">হোম</a>
+          <span>/</span>
+          <span>প্রযুক্তি</span>
+        </div>
+        <h1 class="page-headline">প্রকৌশল ও ডেভেলপার <span class="text-gradient">অন্তর্দৃষ্টি</span></h1>
+        <p class="page-description">
+          আধুনিক ওয়েব ডেভেলপমেন্ট, ব্রাউজার-নেটিভ কৃত্রিম বুদ্ধিমত্তা, সিস্টেম ডিজাইন ও সাইবার নিরাপত্তার বাস্তবমুখী গভীর গাইড।
+        </p>
+
+        <div class="page-stats-bar">
+          <div class="page-stat-badge">
+            <span>কন্টেন্ট:</span>
+            <strong>টিউটোরিয়াল ও আর্কিটেকচার গাইড</strong>
+          </div>
+          <div class="page-stat-badge">
+            <span>ফোকাস:</span>
+            <strong>জিরো-ল্যাটেন্সি ও রেজিলিয়েন্ট সিস্টেম</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technology Grid Section -->
+    <section class="section">
+      <div class="container">
+        <!-- Filter Tabs -->
+        <div class="filter-bar" role="group" aria-label="প্রযুক্তি ক্যাটাগরি ফিল্টার">
+          <div class="filter-tabs-scroll">
+            <button type="button" class="filter-tab active" data-filter="all" data-target="tech">সকল গাইড</button>
+            <button type="button" class="filter-tab" data-filter="এআই ও সফটওয়্যার গাইড" data-target="tech">এআই গাইড</button>
+            <button type="button" class="filter-tab" data-filter="সফটওয়্যার টিপস" data-target="tech">সফটওয়্যার টিপস</button>
+            <button type="button" class="filter-tab" data-filter="দরকারি ওয়েব টুলস" data-target="tech">দরকারি ওয়েব টুলস</button>
+            <button type="button" class="filter-tab" data-filter="ডিজিটাল ট্রেন্ডস" data-target="tech">ডিজিটাল ট্রেন্ডস</button>
+          </div>
+          <div class="filter-search-box">
+            <input type="text" class="filter-subsearch" id="tech-subsearch" placeholder="গাইড সার্চ করুন..." aria-label="গাইড খুঁজুন">
+          </div>
+        </div>
+
+        <!-- Tech Grid -->
+        <div class="cards-grid tech-grid" id="tech-grid">
+          <!-- Populated by script.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Universal Reader Modal -->
+  <div class="modal-backdrop" id="reader-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container reader-modal-container">
+      <div class="modal-header">
+        <div class="reader-meta-kicker" id="reader-kicker">প্রযুক্তি টিউটোরিয়াল</div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('reader-modal')" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body reader-body" id="reader-modal-body"></div>
+      <div class="modal-footer reader-footer">
+        <div class="reader-footer-actions">
+          <button type="button" class="btn btn-secondary" id="reader-bookmark-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span id="reader-bookmark-text">বুকমার্কে রাখুন</span>
+          </button>
+          <button type="button" class="btn btn-ghost" id="reader-copy-link-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            <span>লিংক শেয়ার</span>
+          </button>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('reader-modal')">পড়া শেষ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Drawer -->
+  <div class="drawer-backdrop" id="bookmarks-drawer" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="drawer-container">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          <h3 class="drawer-heading">সংরক্ষিত আইটেম</h3>
+          <span class="drawer-count-badge" id="drawer-items-count">0</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeDrawer()" aria-label="বন্ধ করুন">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="drawer-tabs">
+        <button type="button" class="drawer-tab active" data-drawer-tab="all">সব (<span id="count-drawer-all">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="prompt">প্রম্পট (<span id="count-drawer-prompts">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="article">নিবন্ধ (<span id="count-drawer-articles">0</span>)</button>
+        <button type="button" class="drawer-tab" data-drawer-tab="book">বই (<span id="count-drawer-books">0</span>)</button>
+      </div>
+      <div class="drawer-body" id="bookmarks-drawer-body"></div>
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-ghost btn-sm" id="clear-all-bookmarks-btn">সব মুছুন</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.nexoraApp.closeDrawer()">সম্পন্ন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      <div class="footer-copy">&copy; ২০২৬ নেক্সোরা প্রযুক্তি (Nexora Tech)। সর্বস্বত্ব সংরক্ষিত।</div>
+      <div class="footer-admin-bar">
+        <button type="button" class="btn-footer-admin" onclick="window.nexoraApp.openAdminPanel()" aria-label="অ্যাডমিন প্যানেল খুলুন">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+          </svg>
+          <span>অ্যাডমিন প্যানেল (Admin Panel)</span>
+        </button>
+      </div>
+      <div class="footer-extra"><a href="index.html">মূল হোমপেজে ফিরুন</a></div>
+    </div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
