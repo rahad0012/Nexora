@@ -582,6 +582,7 @@ class NexoraApp {
     this.updateAdminStats();
     this.setupDropzoneEvents();
     this.setupFirebaseAuthListener();
+    this.checkAndOpenPostFromUrl();
     this.fetchFirestoreData();
   }
 
@@ -640,6 +641,7 @@ class NexoraApp {
         if (this.adminCurrentTab === 'list') {
           this.renderAdminPostList();
         }
+        this.checkAndOpenPostFromUrl();
       }
     } catch (err) {
       console.warn('Fallback to local storage posts:', err);
@@ -983,6 +985,9 @@ class NexoraApp {
               <span>আরও পড়ুন (Read More)</span>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${story.id}', 'article', this)" title="পোস্টের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${story.id}', 'article')" aria-label="বুকমার্ক করুন">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(story.id) ? 'currentColor' : 'none'}">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -1036,6 +1041,9 @@ class NexoraApp {
             </svg>
             <span>কপি প্রম্পট</span>
           </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${prompt.id}', 'prompt', this)" title="প্রম্পটের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+          </button>
           <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openPromptModal('${prompt.id}')">
             <span>আরও পড়ুন (Read More)</span>
           </button>
@@ -1074,6 +1082,9 @@ class NexoraApp {
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openTechReader('${guide.id}')">
               <span>আরও পড়ুন (Read More)</span>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${guide.id}', 'tech', this)" title="গাইডের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
             </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${guide.id}', 'tech')" aria-label="বুকমার্ক করুন">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(guide.id) ? 'currentColor' : 'none'}">
@@ -1118,6 +1129,9 @@ class NexoraApp {
           <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openBookReader('${book.id}')" style="flex: 1;">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
             <span>আরও পড়ুন (Read More)</span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${book.id}', 'book', this)" title="বইয়ের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
           </button>
           ${book.pdfUrl ? `
             <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-pdf" title="সরাসরি সম্পূর্ণ পিডিএফ পড়ুন বা ডাউনলোড করুন" aria-label="পিডিএফ">
@@ -1336,10 +1350,12 @@ class NexoraApp {
   // মোডাল রিডার (Article & Tech Readers - Card View with Read More)
   // ------------------------------------------------------------------------
   openArticleReader(id) {
-    const article = newsData.find(a => a.id === id);
+    const article = newsData.find(a => String(a.id) === String(id));
     if (!article) return;
 
+    this.ensureReaderModalInDOM();
     this.currentReaderItem = article;
+    this.updateUrlForPost(article.id);
     const modal = document.getElementById('reader-modal');
     const kicker = document.getElementById('reader-kicker');
     const body = document.getElementById('reader-modal-body');
@@ -1360,7 +1376,13 @@ class NexoraApp {
           </div>
         </div>
         <div class="reader-card-header-body">
-          <h2 class="reader-article-title">${article.title}</h2>
+          <div class="reader-header-top-row">
+            <h2 class="reader-article-title">${article.title}</h2>
+            <button type="button" class="btn btn-secondary btn-sm btn-reader-header-share" onclick="window.nexoraApp.copyDirectPostLink('${article.id}', 'article', this)" title="পোস্টের সরাসরি লিংক কপি করুন">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <span>কপি লিংক</span>
+            </button>
+          </div>
           <div class="reader-article-meta">
             <span>প্রতিবেদক: <strong>${article.author}</strong></span>
             <span class="meta-dot">·</span>
@@ -1393,10 +1415,12 @@ class NexoraApp {
   }
 
   openTechReader(id) {
-    const guide = techData.find(g => g.id === id);
+    const guide = techData.find(g => String(g.id) === String(id));
     if (!guide) return;
 
+    this.ensureReaderModalInDOM();
     this.currentReaderItem = guide;
+    this.updateUrlForPost(guide.id);
     const modal = document.getElementById('reader-modal');
     const kicker = document.getElementById('reader-kicker');
     const body = document.getElementById('reader-modal-body');
@@ -1417,7 +1441,13 @@ class NexoraApp {
           </div>
         </div>
         <div class="reader-card-header-body">
-          <h2 class="reader-article-title">${guide.title}</h2>
+          <div class="reader-header-top-row">
+            <h2 class="reader-article-title">${guide.title}</h2>
+            <button type="button" class="btn btn-secondary btn-sm btn-reader-header-share" onclick="window.nexoraApp.copyDirectPostLink('${guide.id}', 'tech', this)" title="গাইডের সরাসরি লিংক কপি করুন">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <span>কপি লিংক</span>
+            </button>
+          </div>
           <div class="reader-article-meta">
             <span>প্রকৌশল সিরিজ</span>
             <span class="meta-dot">·</span>
@@ -1470,10 +1500,12 @@ class NexoraApp {
   }
 
   openPromptModal(id) {
-    const promptItem = promptsData.find(p => p.id === id);
+    const promptItem = promptsData.find(p => String(p.id) === String(id));
     if (!promptItem) return;
 
+    this.ensurePromptModalInDOM();
     this.currentPromptItem = promptItem;
+    this.updateUrlForPost(promptItem.id);
     const cat = document.getElementById('prompt-modal-cat');
     const title = document.getElementById('prompt-modal-title');
     const body = document.getElementById('prompt-modal-body');
@@ -1513,10 +1545,12 @@ class NexoraApp {
   }
 
   openBookReader(id) {
-    const book = booksData.find(b => b.id === id);
+    const book = booksData.find(b => String(b.id) === String(id));
     if (!book) return;
 
+    this.ensureBookModalInDOM();
     this.currentBookItem = book;
+    this.updateUrlForPost(book.id);
     const license = document.getElementById('book-modal-license');
     const title = document.getElementById('book-modal-title');
     const author = document.getElementById('book-modal-author');
@@ -1529,6 +1563,10 @@ class NexoraApp {
 
     if (actions) {
       actions.innerHTML = `
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${book.id}', 'book', this)" title="বইয়ের লিংক শেয়ার / কপি">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span>লিংক শেয়ার</span>
+        </button>
         ${book.pdfUrl ? `
           <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-pdf-primary btn-sm">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
@@ -1759,6 +1797,23 @@ class NexoraApp {
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
 
+    // If closing a reader modal, remove post parameter from URL cleanly
+    if (modalId === 'reader-modal' || modalId === 'prompt-modal' || modalId === 'book-modal') {
+      try {
+        const currentUrl = new URL(window.location.href);
+        if (currentUrl.searchParams.has('post') || currentUrl.searchParams.has('id') || currentUrl.searchParams.has('article') || currentUrl.searchParams.has('tech') || currentUrl.searchParams.has('prompt') || currentUrl.searchParams.has('book')) {
+          currentUrl.searchParams.delete('post');
+          currentUrl.searchParams.delete('id');
+          currentUrl.searchParams.delete('article');
+          currentUrl.searchParams.delete('tech');
+          currentUrl.searchParams.delete('prompt');
+          currentUrl.searchParams.delete('book');
+          const cleanPath = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '');
+          window.history.replaceState({}, '', cleanPath);
+        }
+      } catch (_) {}
+    }
+
     // If no other admin modal is still open, restore standard visitor state
     const isAnyAdminOpen = !!document.querySelector('#admin-modal.open, #admin-login-modal.open, #delete-confirm-modal.open');
     if (!isAnyAdminOpen) {
@@ -1777,6 +1832,20 @@ class NexoraApp {
     document.body.style.overflow = '';
     document.body.classList.remove('admin-panel-open');
     this.suppressAdsForAdmin(false);
+
+    try {
+      const currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.has('post') || currentUrl.searchParams.has('id') || currentUrl.searchParams.has('article') || currentUrl.searchParams.has('tech') || currentUrl.searchParams.has('prompt') || currentUrl.searchParams.has('book')) {
+        currentUrl.searchParams.delete('post');
+        currentUrl.searchParams.delete('id');
+        currentUrl.searchParams.delete('article');
+        currentUrl.searchParams.delete('tech');
+        currentUrl.searchParams.delete('prompt');
+        currentUrl.searchParams.delete('book');
+        const cleanPath = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '');
+        window.history.replaceState({}, '', cleanPath);
+      }
+    } catch (_) {}
   }
 
   showToast(message, type = 'info') {
@@ -2037,10 +2106,26 @@ class NexoraApp {
 
     const readerCopyLinkBtn = document.getElementById('reader-copy-link-btn');
     if (readerCopyLinkBtn) {
-      readerCopyLinkBtn.addEventListener('click', () => {
-        this.copyToClipboard(window.location.href, () => {
-          this.showToast('লিংক কপি করা হয়েছে!', 'success');
-        });
+      readerCopyLinkBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentReaderItem) {
+          const type = this.currentReaderItem.guideContent ? 'tech' : 'article';
+          this.shareOrCopyPost(this.currentReaderItem.id, type, readerCopyLinkBtn);
+        } else {
+          this.copyToClipboard(window.location.href, () => {
+            this.showToast('লিংক কপি করা হয়েছে!', 'success');
+          });
+        }
+      });
+    }
+
+    const promptModalShareBtn = document.getElementById('prompt-modal-share-btn');
+    if (promptModalShareBtn) {
+      promptModalShareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentPromptItem) {
+          this.shareOrCopyPost(this.currentPromptItem.id, 'prompt', promptModalShareBtn);
+        }
       });
     }
 
@@ -2061,11 +2146,22 @@ class NexoraApp {
     document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
       backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) {
-          backdrop.classList.remove('open');
-          backdrop.setAttribute('aria-hidden', 'true');
-          document.body.style.overflow = '';
+          this.closeModal(backdrop.id);
         }
       });
+    });
+
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search);
+      const postId = params.get('post') || params.get('id');
+      if (postId) {
+        this.openAnyPostById(postId);
+      } else {
+        const openReader = document.querySelector('#reader-modal.open, #prompt-modal.open, #book-modal.open');
+        if (openReader) {
+          this.closeModal(openReader.id);
+        }
+      }
     });
 
     const drawerBackdrop = document.getElementById('bookmarks-drawer');
@@ -3760,6 +3856,333 @@ class NexoraApp {
         this._adminAdObserver.disconnect();
         this._adminAdObserver = null;
       }
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // পোস্ট শেয়ারিং ও পারমালিংক ইঞ্জিন (Post Sharing & Direct URL Permalink Engine)
+  // ------------------------------------------------------------------------
+  findPostById(id) {
+    if (!id) return null;
+    const cleanId = String(id).trim();
+    return (newsData && newsData.find(a => String(a.id) === cleanId)) ||
+           (techData && techData.find(t => String(t.id) === cleanId)) ||
+           (promptsData && promptsData.find(p => String(p.id) === cleanId)) ||
+           (booksData && booksData.find(b => String(b.id) === cleanId)) ||
+           null;
+  }
+
+  getPostType(item) {
+    if (!item) return 'article';
+    if (item.guideContent || item.summary) return 'tech';
+    if (item.promptText || item.tool) return 'prompt';
+    if (item.cover || (item.author && item.year)) return 'book';
+    return 'article';
+  }
+
+  getPostShareUrl(id, type) {
+    const origin = window.location.origin;
+    let path = window.location.pathname || '/';
+    if (path.endsWith('index.html')) {
+      path = '/';
+    }
+    // Respect dedicated subpages if currently browsing them
+    if (type === 'article' && path.includes('news.html')) {
+      path = '/news.html';
+    } else if (type === 'tech' && path.includes('technology.html')) {
+      path = '/technology.html';
+    } else if (type === 'prompt' && path.includes('prompts.html')) {
+      path = '/prompts.html';
+    } else if (type === 'book' && path.includes('books.html')) {
+      path = '/books.html';
+    } else if (!path.endsWith('.html')) {
+      path = '/';
+    }
+    return `${origin}${path}?post=${encodeURIComponent(id)}`;
+  }
+
+  updateUrlForPost(postId) {
+    if (!postId) return;
+    try {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('post', postId);
+      window.history.replaceState({ postId }, '', currentUrl.pathname + currentUrl.search);
+    } catch (_) {}
+  }
+
+  shareOrCopyPost(id, type, triggerEl) {
+    if (!id) return;
+    const post = this.findPostById(id);
+    const postTitle = post ? post.title : 'নেক্সোরা পোস্ট';
+    const postUrl = this.getPostShareUrl(id, type);
+
+    // If Web Share API is available (on mobile devices)
+    if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+      navigator.share({
+        title: postTitle,
+        text: `${postTitle} - নেক্সোরা প্ল্যাটফর্মে পড়ুন`,
+        url: postUrl
+      }).then(() => {
+        this.showToast('পোস্ট শেয়ার সম্পন্ন হয়েছে!', 'success');
+      }).catch((err) => {
+        if (err.name !== 'AbortError') {
+          this.copyToClipboard(postUrl, () => {
+            this.showToast('পোস্টের সরাসরি লিংক কপি করা হয়েছে!', 'success');
+            this.showCopyFeedback(triggerEl);
+          });
+        }
+      });
+      return;
+    }
+
+    // Default desktop and fallback: direct clipboard copy
+    this.copyToClipboard(postUrl, () => {
+      this.showToast('পোস্টের সরাসরি লিংক কপি করা হয়েছে!', 'success');
+      this.showCopyFeedback(triggerEl);
+    });
+  }
+
+  copyDirectPostLink(id, type, triggerEl) {
+    if (!id) return;
+    const postUrl = this.getPostShareUrl(id, type);
+    this.copyToClipboard(postUrl, () => {
+      this.showToast('পোস্টের সরাসরি লিংক কপি করা হয়েছে!', 'success');
+      this.showCopyFeedback(triggerEl);
+    });
+  }
+
+  showCopyFeedback(btnEl) {
+    if (!btnEl) return;
+    const origHtml = btnEl.innerHTML;
+    btnEl.innerHTML = `
+      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span>কপি হয়েছে!</span>
+    `;
+    btnEl.classList.add('copied');
+    setTimeout(() => {
+      btnEl.innerHTML = origHtml;
+      btnEl.classList.remove('copied');
+    }, 2200);
+  }
+
+  checkAndOpenPostFromUrl() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      let targetPostId = urlParams.get('post') || 
+                         urlParams.get('id') || 
+                         urlParams.get('article') || 
+                         urlParams.get('tech') || 
+                         urlParams.get('prompt') || 
+                         urlParams.get('book');
+
+      if (!targetPostId && window.location.hash) {
+        const hash = window.location.hash.replace(/^#/, '');
+        if (hash.startsWith('post-')) {
+          targetPostId = hash.replace('post-', '');
+        } else if (hash && !['top', 'news', 'prompts', 'tech', 'books', 'about', 'admin'].includes(hash)) {
+          if (this.findPostById(hash)) {
+            targetPostId = hash;
+          }
+        }
+      }
+
+      if (!targetPostId) return false;
+
+      return this.openAnyPostById(targetPostId);
+    } catch (e) {
+      console.warn('[Nexora] Error parsing URL for post:', e);
+      return false;
+    }
+  }
+
+  openAnyPostById(id) {
+    if (!id) return false;
+    const cleanId = String(id).trim();
+
+    // 1. News Article
+    const article = newsData.find(a => String(a.id) === cleanId);
+    if (article) {
+      this.ensureReaderModalInDOM();
+      this.openArticleReader(article.id);
+      return true;
+    }
+
+    // 2. Tech Guide
+    const guide = techData.find(g => String(g.id) === cleanId);
+    if (guide) {
+      this.ensureReaderModalInDOM();
+      this.openTechReader(guide.id);
+      return true;
+    }
+
+    // 3. AI Prompt
+    const promptItem = promptsData.find(p => String(p.id) === cleanId);
+    if (promptItem) {
+      this.ensurePromptModalInDOM();
+      this.openPromptModal(promptItem.id);
+      return true;
+    }
+
+    // 4. Book
+    const book = booksData.find(b => String(b.id) === cleanId);
+    if (book) {
+      this.ensureBookModalInDOM();
+      this.openBookReader(book.id);
+      return true;
+    }
+
+    return false;
+  }
+
+  ensureReaderModalInDOM() {
+    if (document.getElementById('reader-modal')) {
+      this.bindReaderModalEvents();
+      return;
+    }
+    const markup = `
+      <div class="modal-backdrop" id="reader-modal" role="dialog" aria-modal="true" aria-labelledby="reader-title" aria-hidden="true">
+        <div class="modal-container reader-modal-container">
+          <div class="modal-header">
+            <div class="reader-meta-kicker" id="reader-kicker">সংবাদ ও বিশ্লেষণ</div>
+            <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('reader-modal')" aria-label="বন্ধ করুন">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="modal-body reader-body" id="reader-modal-body"></div>
+          <div class="modal-footer reader-footer">
+            <div class="reader-footer-actions">
+              <button type="button" class="btn btn-secondary" id="reader-bookmark-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                <span id="reader-bookmark-text">বুকমার্কে রাখুন</span>
+              </button>
+              <button type="button" class="btn btn-ghost" id="reader-copy-link-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <span>লিংক শেয়ার</span>
+              </button>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('reader-modal')">পড়া শেষ</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', markup);
+    this.bindReaderModalEvents();
+  }
+
+  ensurePromptModalInDOM() {
+    if (document.getElementById('prompt-modal')) {
+      this.bindPromptModalEvents();
+      return;
+    }
+    const markup = `
+      <div class="modal-backdrop" id="prompt-modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal-container prompt-modal-container">
+          <div class="modal-header">
+            <div>
+              <span class="meta-tag cyan" id="prompt-modal-cat">এআই প্রম্পট</span>
+              <h3 class="modal-heading" id="prompt-modal-title">প্রম্পটের বিবরণ</h3>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('prompt-modal')" aria-label="বন্ধ করুন">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="modal-body" id="prompt-modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="prompt-modal-bookmark-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              <span id="prompt-modal-bookmark-text">প্রম্পট সংরক্ষণ</span>
+            </button>
+            <button type="button" class="btn btn-ghost" id="prompt-modal-share-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <span>লিংক শেয়ার</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="prompt-modal-copy-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>সম্পূর্ণ প্রম্পট কপি</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', markup);
+    this.bindPromptModalEvents();
+  }
+
+  ensureBookModalInDOM() {
+    if (document.getElementById('book-modal')) return;
+    const markup = `
+      <div class="modal-backdrop" id="book-modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal-container book-modal-container">
+          <div class="modal-header">
+            <div>
+              <span class="meta-tag purple" id="book-modal-license">পাবলিক ডোমেন ক্লাসিক</span>
+              <h3 class="modal-heading" id="book-modal-title">বইয়ের পাঠকক্ষ</h3>
+              <div class="book-modal-author" id="book-modal-author">লেখক</div>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('book-modal')" aria-label="বন্ধ করুন">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="modal-body book-reader-body" id="book-modal-body"></div>
+          <div class="modal-footer book-reader-footer">
+            <div class="book-external-actions" id="book-external-actions"></div>
+            <button type="button" class="btn btn-primary" onclick="window.nexoraApp.closeModal('book-modal')">বন্ধ করুন</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', markup);
+  }
+
+  bindReaderModalEvents() {
+    const readerBookmarkBtn = document.getElementById('reader-bookmark-btn');
+    if (readerBookmarkBtn && !readerBookmarkBtn.dataset.bound) {
+      readerBookmarkBtn.dataset.bound = 'true';
+      readerBookmarkBtn.addEventListener('click', () => {
+        if (this.currentReaderItem) {
+          const type = this.currentReaderItem.guideContent ? 'tech' : 'article';
+          this.toggleBookmark(this.currentReaderItem, type);
+        }
+      });
+    }
+
+    const readerCopyLinkBtn = document.getElementById('reader-copy-link-btn');
+    if (readerCopyLinkBtn && !readerCopyLinkBtn.dataset.bound) {
+      readerCopyLinkBtn.dataset.bound = 'true';
+      readerCopyLinkBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentReaderItem) {
+          const type = this.currentReaderItem.guideContent ? 'tech' : 'article';
+          this.shareOrCopyPost(this.currentReaderItem.id, type, readerCopyLinkBtn);
+        } else {
+          this.copyToClipboard(window.location.href, () => {
+            this.showToast('লিংক কপি করা হয়েছে!', 'success');
+          });
+        }
+      });
+    }
+  }
+
+  bindPromptModalEvents() {
+    const promptModalBookmarkBtn = document.getElementById('prompt-modal-bookmark-btn');
+    if (promptModalBookmarkBtn && !promptModalBookmarkBtn.dataset.bound) {
+      promptModalBookmarkBtn.dataset.bound = 'true';
+      promptModalBookmarkBtn.addEventListener('click', () => {
+        if (this.currentPromptItem) {
+          this.toggleBookmark(this.currentPromptItem, 'prompt');
+        }
+      });
+    }
+
+    const promptShareBtn = document.getElementById('prompt-modal-share-btn');
+    if (promptShareBtn && !promptShareBtn.dataset.bound) {
+      promptShareBtn.dataset.bound = 'true';
+      promptShareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.currentPromptItem) {
+          this.shareOrCopyPost(this.currentPromptItem.id, 'prompt', promptShareBtn);
+        }
+      });
     }
   }
 }

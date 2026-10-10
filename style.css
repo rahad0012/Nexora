@@ -4327,3 +4327,60 @@ body:has(#delete-confirm-modal.open) [id*="socialbar" i] {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* --------------------------------------------------------------------------
+   Post Sharing & Copy Link UI Enhancements
+   -------------------------------------------------------------------------- */
+.reader-header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.reader-header-top-row .reader-article-title {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.btn-reader-header-share {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-reader-header-share:hover {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: #06b6d4;
+  color: #06b6d4;
+  transform: translateY(-1px);
+}
+
+.btn-reader-header-share.copied,
+.btn.copied,
+.btn-ghost.copied {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+@media (max-width: 640px) {
+  .reader-header-top-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-reader-header-share {
+    align-self: flex-start;
+  }
+}
