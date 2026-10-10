@@ -4246,5 +4246,84 @@ ul, ol {
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
 }
 
+/* --------------------------------------------------------------------------
+   Admin Shield: Ensure NO ads are displayed on or over Admin Panel
+   -------------------------------------------------------------------------- */
+.admin-modal-backdrop {
+  z-index: 2147483640 !important;
+}
 
+.admin-modal-backdrop.open {
+  z-index: 2147483640 !important;
+}
 
+.admin-modal-container,
+.admin-login-container,
+.admin-confirm-container {
+  position: relative;
+  z-index: 2147483645 !important;
+}
+
+/* Hide all injected ads, social bars, floating banners, and popups when Admin Panel is open */
+body.admin-panel-open [id*="profitable"],
+body.admin-panel-open [src*="profitable"],
+body.admin-panel-open [class*="socialbar" i],
+body.admin-panel-open [id*="socialbar" i],
+body.admin-panel-open [class*="social-bar" i],
+body.admin-panel-open [id*="social-bar" i],
+body.admin-panel-open iframe[src*="profitable"],
+body.admin-panel-open iframe[src*="cpmnetwork"],
+body.admin-panel-open [class*="cpmnetwork" i],
+body.admin-panel-open [id*="cpmnetwork" i],
+body.admin-panel-open div[style*="z-index: 2147483647"],
+body.admin-panel-open div[style*="z-index:2147483647"],
+body.admin-panel-open .ad-banner,
+body.admin-panel-open .ad-container,
+body:has(#admin-modal.open) [id*="profitable"],
+body:has(#admin-modal.open) [src*="profitable"],
+body:has(#admin-modal.open) [class*="socialbar" i],
+body:has(#admin-modal.open) [id*="socialbar" i],
+body:has(#admin-modal.open) [class*="social-bar" i],
+body:has(#admin-modal.open) [id*="social-bar" i],
+body:has(#admin-modal.open) iframe[src*="profitable"],
+body:has(#admin-modal.open) iframe[src*="cpmnetwork"],
+body:has(#admin-modal.open) div[style*="z-index: 2147483647"],
+body:has(#admin-modal.open) div[style*="z-index:2147483647"],
+body:has(#admin-login-modal.open) [id*="profitable"],
+body:has(#admin-login-modal.open) [src*="profitable"],
+body:has(#admin-login-modal.open) [class*="socialbar" i],
+body:has(#admin-login-modal.open) [id*="socialbar" i],
+body:has(#admin-login-modal.open) [class*="social-bar" i],
+body:has(#admin-login-modal.open) [id*="social-bar" i],
+body:has(#admin-login-modal.open) iframe[src*="profitable"],
+body:has(#admin-login-modal.open) iframe[src*="cpmnetwork"],
+body:has(#admin-login-modal.open) div[style*="z-index: 2147483647"],
+body:has(#admin-login-modal.open) div[style*="z-index:2147483647"],
+body:has(#delete-confirm-modal.open) [id*="profitable"],
+body:has(#delete-confirm-modal.open) [src*="profitable"],
+body:has(#delete-confirm-modal.open) [class*="socialbar" i],
+body:has(#delete-confirm-modal.open) [id*="socialbar" i] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
+}
+
+/* Any ad element accidentally placed inside admin modals */
+.admin-modal-backdrop [id*="profitable"],
+.admin-modal-backdrop [src*="profitable"],
+.admin-modal-backdrop [class*="socialbar" i],
+.admin-modal-backdrop [id*="socialbar" i],
+.admin-modal-backdrop [class*="social-bar" i],
+.admin-modal-backdrop [id*="social-bar" i],
+.admin-modal-backdrop iframe,
+.admin-modal-backdrop .ad-banner,
+.admin-modal-backdrop .ad-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

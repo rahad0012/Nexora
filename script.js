@@ -578,6 +578,7 @@ class NexoraApp {
     this.initHeroSlider();
     this.bindEvents();
     this.setupPostAdInterception();
+    this.setupAdminAdShield();
     this.updateAdminStats();
     this.setupDropzoneEvents();
     this.setupFirebaseAuthListener();
@@ -1742,6 +1743,13 @@ class NexoraApp {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    // Admin Isolation: Hide ads and block ad popunders whenever Admin Panel or Admin modals open
+    if (modalId === 'admin-modal' || modalId === 'admin-login-modal' || modalId === 'delete-confirm-modal') {
+      document.body.classList.add('admin-panel-open');
+      this.suppressAdsForAdmin(true);
+      this.setupAdminAdShield();
+    }
   }
 
   closeModal(modalId) {
@@ -1750,6 +1758,13 @@ class NexoraApp {
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+
+    // If no other admin modal is still open, restore standard visitor state
+    const isAnyAdminOpen = !!document.querySelector('#admin-modal.open, #admin-login-modal.open, #delete-confirm-modal.open');
+    if (!isAnyAdminOpen) {
+      document.body.classList.remove('admin-panel-open');
+      this.suppressAdsForAdmin(false);
+    }
   }
 
   closeAllModals() {
@@ -1760,6 +1775,8 @@ class NexoraApp {
     });
     this.closeDrawer();
     document.body.style.overflow = '';
+    document.body.classList.remove('admin-panel-open');
+    this.suppressAdsForAdmin(false);
   }
 
   showToast(message, type = 'info') {
@@ -3656,6 +3673,94 @@ class NexoraApp {
   // ------------------------------------------------------------------------
   setupPostAdInterception() {
     // Disabled in applet environment to ensure direct responsiveness and avoid window.open
+  }
+
+  // ------------------------------------------------------------------------
+  // অ্যাডমিন প্যানেল বিজ্ঞাপন মুক্ত রাখা (Admin Panel Ad Protection & Suppression)
+  // ------------------------------------------------------------------------
+  setupAdminAdShield() {
+    // Shield all admin modal clicks from bubbling up to document/window popunder handlers
+    ['admin-modal', 'admin-login-modal', 'delete-confirm-modal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.dataset.adShielded) {
+        el.dataset.adShielded = 'true';
+        el.addEventListener('click', (e) => {
+          // Stop propagation so document/window-level ad listeners never trigger on admin clicks
+          e.stopPropagation();
+        });
+      }
+    });
+  }
+
+  suppressAdsForAdmin(active) {
+    const adSelectors = [
+      '[id*="profitable"]',
+      '[src*="profitable"]',
+      '[class*="socialbar" i]',
+      '[id*="socialbar" i]',
+      '[class*="social-bar" i]',
+      '[id*="social-bar" i]',
+      'iframe[src*="profitable"]',
+      'iframe[src*="cpmnetwork"]',
+      '[class*="cpmnetwork" i]',
+      '[id*="cpmnetwork" i]',
+      'div[style*="z-index: 2147483647"]',
+      'div[style*="z-index:2147483647"]',
+      '.ad-banner',
+      '.ad-container'
+    ];
+
+    const toggleAds = (hide) => {
+      adSelectors.forEach(sel => {
+        try {
+          const els = document.querySelectorAll(sel);
+          els.forEach(el => {
+            // Guard: never hide internal site components
+            if (el.closest('.admin-modal-backdrop') && !['IFRAME', 'SCRIPT'].includes(el.tagName)) {
+              return;
+            }
+            if (el.closest('.site-header') || el.closest('#toast-container')) {
+              return;
+            }
+            if (hide) {
+              if (!el.dataset.prevDisplay) {
+                el.dataset.prevDisplay = el.style.display || '';
+              }
+              if (!el.dataset.prevVisibility) {
+                el.dataset.prevVisibility = el.style.visibility || '';
+              }
+              el.style.setProperty('display', 'none', 'important');
+              el.style.setProperty('visibility', 'hidden', 'important');
+              el.style.setProperty('opacity', '0', 'important');
+              el.style.setProperty('pointer-events', 'none', 'important');
+            } else {
+              el.style.display = el.dataset.prevDisplay || '';
+              el.style.visibility = el.dataset.prevVisibility || '';
+              el.style.opacity = '';
+              el.style.pointerEvents = '';
+            }
+          });
+        } catch (_) {}
+      });
+    };
+
+    toggleAds(active);
+
+    if (active) {
+      if (!this._adminAdObserver) {
+        this._adminAdObserver = new MutationObserver(() => {
+          if (document.body.classList.contains('admin-panel-open')) {
+            toggleAds(true);
+          }
+        });
+        this._adminAdObserver.observe(document.body, { childList: true, subtree: true });
+      }
+    } else {
+      if (this._adminAdObserver) {
+        this._adminAdObserver.disconnect();
+        this._adminAdObserver = null;
+      }
+    }
   }
 }
 
