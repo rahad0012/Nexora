@@ -346,6 +346,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
     desc: "বিজ্ঞান কল্পকাহিনীর প্রথম ও অবিসংবাদিত কালজয়ী ক্লাসিক। বিজ্ঞানীদের উচ্চাকাঙ্ক্ষা, নৈতিক দায়বদ্ধতা এবং সৃষ্টির প্রতি স্রষ্টার কর্তব্যের মর্মস্পর্শী আখ্যান।",
     gutenbergUrl: "https://www.gutenberg.org/ebooks/84",
+    pdfUrl: "https://archive.org/download/frankensteinor00shel/frankensteinor00shel.pdf",
     chapters: [
       {
         heading: "চিঠি ১ — আবিষ্কারের সূচনা",
@@ -368,6 +369,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
     desc: "নেতৃত্ব, অবস্থান গ্রহণ, মনস্তাত্ত্বিক যুদ্ধ জয় এবং যুদ্ধ ছাড়াই লক্ষ্য হাসিলের ইতিহাসের সবচেয়ে প্রভাবশালী কৌশলগ্রন্থ।",
     gutenbergUrl: "https://www.gutenberg.org/ebooks/132",
+    pdfUrl: "https://archive.org/download/artofwar00sunz/artofwar00sunz.pdf",
     chapters: [
       {
         heading: "অধ্যায় ১ — পরিকল্পনার মূলনীতি",
@@ -390,6 +392,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
     desc: "ক্যাপ্টেন নিমো ও সাবমেরিন নটিলাসের রোমাঞ্চকর সমুদ্রযাত্রা। গভীর সাগরের রহস্য, পরিবেশ ও মানব শোষণের বিরুদ্ধে নিঃসঙ্গ লড়াই।",
     gutenbergUrl: "https://www.gutenberg.org/ebooks/164",
+    pdfUrl: "https://archive.org/download/twentithousand00vern/twentithousand00vern.pdf",
     chapters: [
       {
         heading: "প্রথম খণ্ড — ভাসমান রহস্য",
@@ -412,6 +415,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
     desc: "১৯০৯ সালে লেখা ভবিষ্যৎবাণীমূলক উপন্যাসিকা যা আজকের ইন্টারনেট, ইনস্ট্যান্ট ভিডিও কল ও ভার্চুয়াল বিচ্ছিন্নতার হুবহু চিত্র তুলে ধরেছিল।",
     gutenbergUrl: "https://www.gutenberg.org/ebooks/70724",
+    pdfUrl: "https://archive.org/download/machinestops00forsiala/machinestops00forsiala.pdf",
     chapters: [
       {
         heading: "পর্ব ১ — ষড়ভুজ কক্ষ",
@@ -434,6 +438,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80",
     desc: "কম্পিউটার বিজ্ঞানের মূল ধারণা, অ্যালগরিদমিক চিন্তা ও পাইথনের মাধ্যমে বাস্তব সমস্যার সমাধান শেখার উন্মুক্ত বিখ্যাত বই।",
     gutenbergUrl: "https://greenteapress.com/wp/think-python-2e/",
+    pdfUrl: "https://greenteapress.com/thinkpython2/thinkpython2.pdf",
     chapters: [
       {
         heading: "অধ্যায় ১ — প্রোগ্রামের মূল দর্শন",
@@ -456,6 +461,7 @@ const defaultBooksData = [
     cover: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=600&q=80",
     desc: "সান ফ্রান্সিসকোর এক কিশোর হ্যাকারের কাহিনী, যে নজরদারি রাষ্ট্রের বিরুদ্ধে ওপেন-সোর্স ক্রিপ্টোগ্রাফি দিয়ে নাগরিকদের গোপনীয়তা রক্ষা করে।",
     gutenbergUrl: "https://craphound.com/littlebrother/download/",
+    pdfUrl: "https://craphound.com/littlebrother/download/cory_doctorow_little_brother.pdf",
     chapters: [
       {
         heading: "অধ্যায় ১ — সার্বক্ষণিক নজরদারি",
@@ -480,7 +486,18 @@ function loadStoredPosts() {
     const st = localStorage.getItem('nexora_tech_data');
     techData = st ? JSON.parse(st) : JSON.parse(JSON.stringify(defaultTechData));
     const sb = localStorage.getItem('nexora_books_data');
-    booksData = sb ? JSON.parse(sb) : JSON.parse(JSON.stringify(defaultBooksData));
+    if (sb) {
+      booksData = JSON.parse(sb);
+      // Migrate missing pdfUrl from default data if present
+      booksData.forEach(b => {
+        if (!b.pdfUrl) {
+          const def = defaultBooksData.find(d => d.id === b.id);
+          if (def && def.pdfUrl) b.pdfUrl = def.pdfUrl;
+        }
+      });
+    } else {
+      booksData = JSON.parse(JSON.stringify(defaultBooksData));
+    }
   } catch(e) {
     console.error('Error loading posts from storage', e);
     newsData = JSON.parse(JSON.stringify(defaultNewsData));
@@ -525,6 +542,8 @@ class NexoraApp {
     this.adminUsername = 'admin@nexora';
     this.adminPassword = 'Nexora@admin$$2026';
     this.pendingDelete = null;
+    this.uploadedImageDataUrl = null;
+    this.imageSourceMode = 'upload';
 
     // বর্তমান পেজ শনাক্তকরণ
     this.page = this.detectCurrentPage();
@@ -549,10 +568,12 @@ class NexoraApp {
     this.bindEvents();
     this.setupPostAdInterception();
     this.updateAdminStats();
+    this.setupDropzoneEvents();
   }
 
   // ------------------------------------------------------------------------
-  // ৩ সেকেন্ডের হিরো স্লাইডার (Hero Slider Controller - 3s Interval)
+  // ------------------------------------------------------------------------
+  // হিরো স্লাইডার কন্ট্রোলার (Nexora Hero Showcase Slider - 5.5s Interval)
   // ------------------------------------------------------------------------
   initHeroSlider() {
     const slides = document.querySelectorAll('.hero-slide');
@@ -566,17 +587,23 @@ class NexoraApp {
 
     let currentIndex = 0;
     const totalSlides = slides.length;
-    const intervalTime = 10000; // ১০ সেকেন্ড সময় (10s interval)
+    const intervalTime = 5500; // ৫.৫ সেকেন্ড স্বয়ংক্রিয় স্লাইড (5.5s interval)
     let timer = null;
 
     const goToSlide = (index) => {
       slides[currentIndex].classList.remove('active');
-      if (dots[currentIndex]) dots[currentIndex].classList.remove('active');
+      if (dots[currentIndex]) {
+        dots[currentIndex].classList.remove('active');
+        dots[currentIndex].setAttribute('aria-selected', 'false');
+      }
 
       currentIndex = (index + totalSlides) % totalSlides;
 
       slides[currentIndex].classList.add('active');
-      if (dots[currentIndex]) dots[currentIndex].classList.add('active');
+      if (dots[currentIndex]) {
+        dots[currentIndex].classList.add('active');
+        dots[currentIndex].setAttribute('aria-selected', 'true');
+      }
 
       resetProgress();
     };
@@ -588,6 +615,8 @@ class NexoraApp {
       if (progressBar) {
         progressBar.style.transition = 'none';
         progressBar.style.width = '0%';
+        // Force reflow
+        void progressBar.offsetWidth;
         setTimeout(() => {
           progressBar.style.transition = `width ${intervalTime}ms linear`;
           progressBar.style.width = '100%';
@@ -633,24 +662,42 @@ class NexoraApp {
     });
 
     if (sliderContainer) {
+      // হোভার ও ফোকাসে স্বয়ংক্রিয় স্লাইড সাময়িক বন্ধ
       sliderContainer.addEventListener('mouseenter', stopTimer);
       sliderContainer.addEventListener('mouseleave', startTimer);
+      sliderContainer.addEventListener('focusin', stopTimer);
+      sliderContainer.addEventListener('focusout', startTimer);
 
-      // টাচ সোয়াইপ
+      // কীবোর্ড অ্যারো নেভিগেশন
+      sliderContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+          prevSlide();
+          startTimer();
+        } else if (e.key === 'ArrowRight') {
+          nextSlide();
+          startTimer();
+        }
+      });
+
+      // মোবাইল টাচ সোয়াইপ
       let touchStartX = 0;
       let touchEndX = 0;
 
       sliderContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
+        if (e.changedTouches && e.changedTouches[0]) {
+          touchStartX = e.changedTouches[0].screenX;
+        }
         stopTimer();
       }, { passive: true });
 
       sliderContainer.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        if (touchStartX - touchEndX > 50) {
-          nextSlide();
-        } else if (touchEndX - touchStartX > 50) {
-          prevSlide();
+        if (e.changedTouches && e.changedTouches[0]) {
+          touchEndX = e.changedTouches[0].screenX;
+          if (touchStartX - touchEndX > 45) {
+            nextSlide();
+          } else if (touchEndX - touchStartX > 45) {
+            prevSlide();
+          }
         }
         startTimer();
       }, { passive: true });
@@ -966,7 +1013,13 @@ class NexoraApp {
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
             <span>আরও পড়ুন (Read More)</span>
           </button>
-          <a href="${book.gutenbergUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" title="গুটেনবার্গ উন্মুক্ত লিংক" aria-label="গুটেনবার্গ ওপেন লিংক">
+          ${book.pdfUrl ? `
+            <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-pdf" title="সরাসরি সম্পূর্ণ পিডিএফ পড়ুন বা ডাউনলোড করুন" aria-label="পিডিএফ">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
+              <span>PDF</span>
+            </a>
+          ` : ''}
+          <a href="${book.gutenbergUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" title="গুটেনবার্গ উন্মুক্ত লিংক" aria-label="গুটেনবার্গ ওপেন লিংক">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </a>
           <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${book.id}', 'book')" aria-label="বুকমার্ক করুন">
@@ -1370,7 +1423,13 @@ class NexoraApp {
 
     if (actions) {
       actions.innerHTML = `
-        <a href="${book.gutenbergUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+        ${book.pdfUrl ? `
+          <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-pdf-primary btn-sm">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
+            <span>সম্পূর্ণ পিডিএফ পড়ুন / ডাউনলোড (PDF)</span>
+          </a>
+        ` : ''}
+        <a href="${book.gutenbergUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           প্রজেক্ট গুটেনবার্গে সম্পূর্ণ মূল বই
         </a>
@@ -1397,6 +1456,23 @@ class NexoraApp {
             <div class="reader-card-summary-box">
               <strong>পুস্তক ভূমিকা:</strong> ${book.desc}
             </div>
+            ${book.pdfUrl ? `
+              <div class="reader-pdf-banner" style="margin: 18px 0 8px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                  <div class="pdf-banner-icon" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
+                  </div>
+                  <div>
+                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.9375rem;">এই বইটির সম্পূর্ণ পিডিএফ কপি সংযুক্ত রয়েছে</div>
+                    <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px;">সরাসরি ব্রাউজারে পড়ুন অথবা অফলাইনে পড়ার জন্য ডাউনলোড করুন।</div>
+                  </div>
+                </div>
+                <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-pdf-primary btn-sm" style="white-space: nowrap;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
+                  পিডিএফ খুলুন
+                </a>
+              </div>
+            ` : ''}
           </div>
           <div class="reader-expand-wrapper" id="book-expand-wrapper">
             <div class="reader-expand-content-box" id="book-expand-content-box">
@@ -2266,20 +2342,53 @@ class NexoraApp {
                     </div>
                   </div>
 
+                  <!-- Image Upload & URL Options -->
                   <div class="form-group">
-                    <label for="post-field-image" class="form-label" id="label-post-image">ছবি / কভার ইমেজ লিংক (Image URL)</label>
-                    <div class="image-url-input-wrap">
-                      <input type="url" id="post-field-image" class="form-input" placeholder="https://images.unsplash.com/..." />
-                      <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.previewFormImage()">প্রিভিউ দেখুন</button>
+                    <div class="image-field-header">
+                      <label for="post-field-image" class="form-label" id="label-post-image">ছবি / কভার ইমেজ (Cover Image)</label>
+                      <div class="image-source-toggle" role="tablist">
+                        <button type="button" class="btn-toggle-source active" id="btn-toggle-upload" onclick="window.nexoraApp.toggleImageSource('upload')">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                          <span>ডিভাইস থেকে আপলোড</span>
+                        </button>
+                        <button type="button" class="btn-toggle-source" id="btn-toggle-url" onclick="window.nexoraApp.toggleImageSource('url')">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                          <span>ওয়েব লিংক (URL)</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="image-presets-row">
-                      <span class="preset-label">দ্রুত ছবির লিংক বাছাই:</span>
-                      <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')">এআই ও নিউরাল</button>
-                      <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80')">কোডিং ও ডেভ</button>
-                      <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80')">ক্লাউড ও সার্ভার</button>
-                      <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80')">সিকিউরিটি</button>
-                      <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80')">বই ও সাহিত্য</button>
+
+                    <!-- 1. File Upload Dropzone -->
+                    <div class="image-dropzone" id="image-dropzone" onclick="document.getElementById('post-field-image-file').click()">
+                      <input type="file" id="post-field-image-file" class="hidden-file-input" accept="image/*" onchange="window.nexoraApp.handleImageFileUpload(event)" style="display:none;" />
+                      <div class="dropzone-content">
+                        <div class="dropzone-icon-circle">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        </div>
+                        <div class="dropzone-texts">
+                          <div class="dropzone-primary-text"><strong>কম্পিউটার/মোবাইল থেকে ছবি সিলেক্ট করুন</strong> অথবা ড্র্যাগ করুন</div>
+                          <div class="dropzone-secondary-text">PNG, JPG, JPEG, WEBP · স্বয়ংক্রিয়ভাবে অপ্টিমাইজড হবে</div>
+                        </div>
+                      </div>
                     </div>
+
+                    <!-- 2. URL Input Container -->
+                    <div class="image-url-box" id="image-url-box" style="display:none;">
+                      <div class="image-url-input-wrap">
+                        <input type="url" id="post-field-image" class="form-input" placeholder="https://images.unsplash.com/... অথবা ছবির সরাসরি লিংক" oninput="window.nexoraApp.previewFormImage()" />
+                        <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.previewFormImage()">প্রিভিউ দেখুন</button>
+                      </div>
+                      <div class="image-presets-row">
+                        <span class="preset-label">দ্রুত ছবির লিংক বাছাই:</span>
+                        <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')">এআই ও নিউরাল</button>
+                        <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80')">কোডিং ও ডেভ</button>
+                        <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80')">ক্লাউড ও সার্ভার</button>
+                        <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80')">সিকিউরিটি</button>
+                        <button type="button" class="btn-preset-img btn-admin" onclick="window.nexoraApp.setPresetImage('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80')">বই ও সাহিত্য</button>
+                      </div>
+                    </div>
+
+                    <!-- Unified Image Preview Card -->
                     <div id="image-preview-box" class="image-preview-box" style="display:none;"></div>
                   </div>
                 </div>
@@ -2298,7 +2407,8 @@ class NexoraApp {
                     </div>
                   </div>
 
-                  <div class="form-grid-3" id="group-book-fields" style="display:none;">
+                  <!-- Books Extra Fields with PDF Link -->
+                  <div class="form-grid-2" id="group-book-fields" style="display:none;">
                     <div class="form-group">
                       <label for="post-field-book-year" class="form-label">প্রকাশের সাল</label>
                       <input type="text" id="post-field-book-year" class="form-input" placeholder="যেমন: ১৮১৮ বা ১৯০৯" />
@@ -2310,6 +2420,24 @@ class NexoraApp {
                     <div class="form-group">
                       <label for="post-field-book-url" class="form-label">মূল সোর্স / গুটেনবার্গ লিংক</label>
                       <input type="url" id="post-field-book-url" class="form-input" placeholder="https://www.gutenberg.org/..." />
+                    </div>
+                    <div class="form-group">
+                      <label for="post-field-book-pdf" class="form-label">
+                        <span class="badge-pdf-tag">PDF</span> সম্পূর্ণ পিডিএফ লিংক (PDF Read/Download URL)
+                      </label>
+                      <div style="display: flex; gap: 8px;">
+                        <input type="url" id="post-field-book-pdf" class="form-input" placeholder="https://... সরাসরি পিডিএফ ফাইলের লিংক" />
+                        <button type="button" class="btn btn-ghost btn-sm btn-admin" style="white-space: nowrap;" onclick="window.nexoraApp.testBookPdfLink()" title="পিডিএফ লিংক টেস্ট করুন">
+                          টেস্ট
+                        </button>
+                      </div>
+                      <div class="field-hint" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <span>পাঠকরা সরাসরি পিডিএফ ডাউনলোড বা পড়ার বোতাম পাবেন।</span>
+                        <div style="display: flex; gap: 4px;">
+                          <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://archive.org/download/frankensteinor00shel/frankensteinor00shel.pdf')">নমুনা ১</button>
+                          <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://greenteapress.com/thinkpython2/thinkpython2.pdf')">নমুনা ২</button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -2615,6 +2743,7 @@ class NexoraApp {
     }
 
     this.switchAdminTab('form');
+    this.setupDropzoneEvents();
     const titleInput = document.getElementById('post-field-title');
     if (titleInput) titleInput.focus();
   }
@@ -2666,12 +2795,26 @@ class NexoraApp {
     const bookYearIn = document.getElementById('post-field-book-year');
     const bookLicIn = document.getElementById('post-field-book-license');
     const bookUrlIn = document.getElementById('post-field-book-url');
+    const bookPdfIn = document.getElementById('post-field-book-pdf');
 
     if (titleIn) titleIn.value = item.title || '';
     if (catIn) catIn.value = item.category || '';
-    if (imgIn) {
-      imgIn.value = item.image || item.cover || '';
-      this.previewFormImage();
+
+    // ছবি সেটআপ (URL বা আপলোডকৃত ডেটা)
+    const existingImg = item.image || item.cover || '';
+    if (existingImg) {
+      if (existingImg.startsWith('data:')) {
+        this.uploadedImageDataUrl = existingImg;
+        this.toggleImageSource('upload');
+        this.setUploadedImage(existingImg, 'সংরক্ষিত ছবি', 0);
+      } else {
+        this.uploadedImageDataUrl = null;
+        this.toggleImageSource('url');
+        if (imgIn) imgIn.value = existingImg;
+        this.previewFormImage();
+      }
+    } else {
+      this.clearImageUpload();
     }
 
     if (type === 'news') {
@@ -2695,6 +2838,7 @@ class NexoraApp {
       if (bookYearIn) bookYearIn.value = item.year || '';
       if (bookLicIn) bookLicIn.value = item.license || 'পাবলিক ডোমেন (উন্মুক্ত স্বত্ব)';
       if (bookUrlIn) bookUrlIn.value = item.gutenbergUrl || '';
+      if (bookPdfIn) bookPdfIn.value = item.pdfUrl || '';
       if (excIn) excIn.value = item.desc || '';
       if (contentIn) {
         contentIn.value = item.chapters && item.chapters[0] ? item.chapters[0].text : '';
@@ -2708,6 +2852,7 @@ class NexoraApp {
     if (tabLabel) tabLabel.textContent = 'পোস্ট সম্পাদনা';
 
     this.switchAdminTab('form');
+    this.setupDropzoneEvents();
     if (titleIn) titleIn.focus();
   }
 
@@ -2805,11 +2950,200 @@ class NexoraApp {
     const val = input.value.trim();
     if (val) {
       box.style.display = 'block';
-      box.innerHTML = `<img src="${val}" alt="Preview" onerror="this.src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=80'" />`;
+      box.innerHTML = `
+        <div class="preview-card">
+          <div class="preview-thumb-wrap">
+            <img src="${val}" alt="Preview" class="preview-thumb-img" onerror="this.src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=80'" />
+          </div>
+          <div class="preview-meta">
+            <div class="preview-title">ওয়েব ইমেজ প্রিভিউ</div>
+            <div class="preview-status">✓ বৈধ ওয়েব লিংক সংযুক্ত</div>
+          </div>
+          <button type="button" class="btn-remove-preview" onclick="window.nexoraApp.clearImageUpload()" title="ছবি মুছে ফেলুন">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>মুছুন</span>
+          </button>
+        </div>
+      `;
     } else {
       box.style.display = 'none';
       box.innerHTML = '';
     }
+  }
+
+  // ------------------------------------------------------------------------
+  // ডিভাইস থেকে ইমেজ আপলোড ও অপ্টিমাইজেশন (Image File Upload & Dropzone)
+  // ------------------------------------------------------------------------
+  setupDropzoneEvents() {
+    const dropzones = document.querySelectorAll('.image-dropzone');
+    dropzones.forEach(dropzone => {
+      if (dropzone.dataset.bound === 'true') return;
+      dropzone.dataset.bound = 'true';
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('dragover');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('dragover');
+        }, false);
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+          this.processImageFile(dt.files[0]);
+        }
+      }, false);
+    });
+  }
+
+  handleImageFileUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      this.processImageFile(file);
+    }
+  }
+
+  processImageFile(file) {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith('image/')) {
+      this.showToast('অনুগ্রহ করে একটি সঠিক ইমেজ ফাইল (PNG, JPG, JPEG, WEBP) নির্বাচন করুন!', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        const maxDimension = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            width = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.84);
+        this.setUploadedImage(optimizedDataUrl, file.name, file.size);
+      };
+      img.onerror = () => {
+        this.setUploadedImage(rawDataUrl, file.name, file.size);
+      };
+      img.src = rawDataUrl;
+    };
+    reader.onerror = () => {
+      this.showToast('ছবি পড়তে সমস্যা হয়েছে! আবার চেষ্টা করুন।', 'error');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  setUploadedImage(dataUrl, fileName, fileSize) {
+    this.uploadedImageDataUrl = dataUrl;
+    const urlInput = document.getElementById('post-field-image');
+    if (urlInput) urlInput.value = dataUrl;
+
+    const previewBox = document.getElementById('image-preview-box');
+    if (previewBox) {
+      previewBox.style.display = 'block';
+      previewBox.innerHTML = `
+        <div class="preview-card">
+          <div class="preview-thumb-wrap">
+            <img src="${dataUrl}" class="preview-thumb-img" alt="Uploaded Preview" />
+          </div>
+          <div class="preview-meta">
+            <div class="preview-title" title="${fileName || 'আপলোডকৃত ছবি'}">${fileName || 'ডিভাইস থেকে আপলোডকৃত ছবি'}</div>
+            <div class="preview-status">✓ ছবি প্রস্তুত ও অপ্টিমাইজড (${this.formatFileSize(fileSize)})</div>
+          </div>
+          <button type="button" class="btn-remove-preview" onclick="window.nexoraApp.clearImageUpload()" title="ছবি মুছে ফেলুন">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>মুছুন</span>
+          </button>
+        </div>
+      `;
+    }
+
+    this.showToast('ডিভাইস থেকে ছবি সফলভাবে আপলোড হয়েছে!', 'success');
+  }
+
+  clearImageUpload() {
+    this.uploadedImageDataUrl = null;
+    const urlInput = document.getElementById('post-field-image');
+    if (urlInput) urlInput.value = '';
+    const fileInput = document.getElementById('post-field-image-file');
+    if (fileInput) fileInput.value = '';
+    const previewBox = document.getElementById('image-preview-box');
+    if (previewBox) {
+      previewBox.style.display = 'none';
+      previewBox.innerHTML = '';
+    }
+  }
+
+  toggleImageSource(mode) {
+    this.imageSourceMode = mode;
+    const btnUpload = document.getElementById('btn-toggle-upload');
+    const btnUrl = document.getElementById('btn-toggle-url');
+    const dropzone = document.getElementById('image-dropzone');
+    const urlBox = document.getElementById('image-url-box');
+
+    if (mode === 'upload') {
+      if (btnUpload) btnUpload.classList.add('active');
+      if (btnUrl) btnUrl.classList.remove('active');
+      if (dropzone) dropzone.style.display = 'flex';
+      if (urlBox) urlBox.style.display = 'none';
+      this.setupDropzoneEvents();
+    } else {
+      if (btnUrl) btnUrl.classList.add('active');
+      if (btnUpload) btnUpload.classList.remove('active');
+      if (urlBox) urlBox.style.display = 'block';
+      if (dropzone) dropzone.style.display = 'none';
+    }
+  }
+
+  formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return 'অপ্টিমাইজড';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  setPresetPdf(url) {
+    const input = document.getElementById('post-field-book-pdf');
+    if (input) {
+      input.value = url;
+      this.showToast('নমুনা পিডিএফ লিংক সফলভাবে যুক্ত হয়েছে!', 'info');
+    }
+  }
+
+  testBookPdfLink() {
+    const input = document.getElementById('post-field-book-pdf');
+    const url = input ? input.value.trim() : '';
+    if (!url) {
+      this.showToast('অনুগ্রহ করে প্রথমে একটি পিডিএফ লিংক দিন!', 'warning');
+      return;
+    }
+    window.open(url, '_blank');
   }
 
   resetAdminForm() {
@@ -2821,11 +3155,11 @@ class NexoraApp {
     if (editIdInput) editIdInput.value = '';
     if (origTypeInput) origTypeInput.value = '';
 
-    const previewBox = document.getElementById('image-preview-box');
-    if (previewBox) {
-      previewBox.style.display = 'none';
-      previewBox.innerHTML = '';
-    }
+    const bookPdfIn = document.getElementById('post-field-book-pdf');
+    if (bookPdfIn) bookPdfIn.value = '';
+
+    this.clearImageUpload();
+    this.toggleImageSource('upload');
   }
 
   handleAdminFormSubmit(e) {
@@ -2839,7 +3173,7 @@ class NexoraApp {
     const title = (document.getElementById('post-field-title') || {}).value.trim();
     const category = (document.getElementById('post-field-category') || {}).value.trim();
     let authorTool = (document.getElementById('post-field-author-tool') || {}).value.trim();
-    let imageUrl = (document.getElementById('post-field-image') || {}).value.trim();
+    let imageUrl = this.uploadedImageDataUrl || ((document.getElementById('post-field-image') || {}).value || '').trim();
     const readTime = (document.getElementById('post-field-readtime') || {}).value.trim() || '৫ মিনিট পাঠ';
     let date = (document.getElementById('post-field-date') || {}).value.trim();
     const excerpt = (document.getElementById('post-field-excerpt') || {}).value.trim();
@@ -2849,6 +3183,7 @@ class NexoraApp {
     const bookYear = (document.getElementById('post-field-book-year') || {}).value.trim() || '২০২৬';
     const bookLicense = (document.getElementById('post-field-book-license') || {}).value.trim() || 'পাবলিক ডোমেন (উন্মুক্ত স্বত্ব)';
     const bookUrl = (document.getElementById('post-field-book-url') || {}).value.trim() || 'https://www.gutenberg.org';
+    const bookPdf = (document.getElementById('post-field-book-pdf') || {}).value.trim();
 
     if (!title || !category) {
       this.showToast('শিরোনাম এবং ক্যাটাগরি পূরণ করা আবশ্যক', 'error');
@@ -2959,7 +3294,8 @@ class NexoraApp {
           cover: imageUrl,
           desc: excerpt || title,
           gutenbergUrl: bookUrl,
-          chapters: [
+          pdfUrl: bookPdf || (existing ? existing.pdfUrl : ''),
+          chapters: existing && existing.chapters && existing.chapters.length ? existing.chapters : [
             {
               heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
               text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
@@ -3026,6 +3362,7 @@ class NexoraApp {
           cover: imageUrl,
           desc: excerpt || title,
           gutenbergUrl: bookUrl,
+          pdfUrl: bookPdf || '',
           chapters: [
             {
               heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
@@ -3046,11 +3383,36 @@ class NexoraApp {
     this.switchAdminTab('list');
   }
 
-  deletePost(type, id) {
-    if (!confirm('আপনি কি নিশ্চিতভাবে এই পোস্টটি চিরতরে মুছে ফেলতে চান?')) {
-      return;
+  confirmDeletePost(type, id) {
+    this.ensureDeleteConfirmModalInDOM();
+    this.pendingDeleteType = type;
+    this.pendingDeleteId = id;
+
+    let postTitle = '';
+    const dataset = type === 'news' ? newsData : type === 'prompts' ? promptsData : type === 'tech' ? techData : booksData;
+    const found = dataset.find(item => item.id === id);
+    if (found) {
+      postTitle = found.title;
     }
 
+    const nameEl = document.getElementById('confirm-delete-post-title');
+    if (nameEl) {
+      nameEl.textContent = postTitle ? ` "${postTitle}"` : '';
+    }
+
+    this.openModal('delete-confirm-modal');
+  }
+
+  executeConfirmedDelete() {
+    if (this.pendingDeleteType && this.pendingDeleteId) {
+      this.performDelete(this.pendingDeleteType, this.pendingDeleteId);
+      this.pendingDeleteType = null;
+      this.pendingDeleteId = null;
+    }
+    this.closeModal('delete-confirm-modal');
+  }
+
+  performDelete(type, id) {
     let deletedTitle = '';
 
     if (type === 'news') {
@@ -3094,11 +3456,11 @@ class NexoraApp {
     this.showToast(`"${(deletedTitle || 'পোস্ট').substring(0, 25)}..." মুছে ফেলা হয়েছে`, 'info');
   }
 
-  resetAllPostsToDefault() {
-    if (!confirm('আপনি কি সব পোস্ট ডিফল্ট ডেটায় রিসেট করতে চান? আপনার তৈরি করা নতুন পোস্টগুলো মুছে যাবে।')) {
-      return;
-    }
+  deletePost(type, id) {
+    this.confirmDeletePost(type, id);
+  }
 
+  resetAllPostsToDefault() {
     localStorage.removeItem('nexora_news_data');
     localStorage.removeItem('nexora_prompts_data');
     localStorage.removeItem('nexora_tech_data');
@@ -3113,72 +3475,10 @@ class NexoraApp {
   }
 
   // ------------------------------------------------------------------------
-  // পোস্ট বাটন বিজ্ঞাপন ইন্টারসেপশন (Post Buttons Ad Interception: 1st Click Ad, 2nd Click Action)
+  // পোস্ট বাটন বিজ্ঞাপন ইন্টারসেপশন
   // ------------------------------------------------------------------------
   setupPostAdInterception() {
-    const AD_URL = 'https://www.profitableratecpmnetwork.com/uk5x37ih?key=7029c8770d8362183bcf09703b7c730b';
-
-    // পোস্ট সংশ্লিষ্ট বাটন বা ইন্টারঅ্যাক্টিভ লিংক শনাক্তকরণ
-    const getPostButton = (target) => {
-      if (!target || typeof target.closest !== 'function') return null;
-
-      // ০. অ্যাডমিন প্যানেল ও কন্ট্রোল বাটন সম্পূর্ণ মুক্ত থাকবে (No Ad Interception on Admin Controls)
-      if (target.closest('.admin-modal, #admin-modal, .admin-panel, #admin-btn, .btn-footer-admin, .btn-admin, .admin-tab-btn, .admin-pill, .btn-action-edit, .btn-action-delete, .footer-admin-link, .category-chip, .btn-preset-img')) {
-        return null;
-      }
-
-      // ১. হিরো স্লাইডার অ্যাকশন বাটনসমূহ (পোস্ট পড়ুন, প্রম্পট কপি, গাইড পড়ুন, ইত্যাদি)
-      const heroAction = target.closest('.hero-slide-actions button, .hero-slide-actions a, .btn-hero-explore');
-      if (heroAction) return heroAction;
-
-      // ২. পোস্ট কার্ডের বাটনসমূহ (সংবাদ, প্রম্পট, টেক গাইড, বই, লিড স্টোরি)
-      const postCard = target.closest('.news-card, .prompt-card, .tech-card, .book-card, .lead-story-card');
-      if (postCard) {
-        const btn = target.closest('button, a, .btn-text-link, .btn-copy-prompt, .prompt-box, .btn-secondary, .btn-card-readmore');
-        if (btn) return btn;
-      }
-
-      // ৩. সার্চ ড্রপডাউনের পোস্ট আইটেম
-      const searchItem = target.closest('.search-result-item');
-      if (searchItem) return searchItem;
-
-      // ৪. পোস্ট মোডালের ভেতরের অ্যাকশন বাটনসমূহ
-      const modalAction = target.closest('#prompt-modal-copy-btn, #prompt-modal-bookmark-btn, #reader-bookmark-btn, #reader-copy-link-btn, .reader-related-card, .btn-read-more, #btn-read-more-post, #btn-read-more-book');
-      if (modalAction) return modalAction;
-
-      return null;
-    };
-
-    // নিরাপদভাবে নতুন ট্যাবে বিজ্ঞাপন ওপেন (Avoid window.open / Popup blocker)
-    const openAdTab = () => {
-      const adAnchor = document.createElement('a');
-      adAnchor.href = AD_URL;
-      adAnchor.target = '_blank';
-      adAnchor.rel = 'noopener noreferrer';
-      document.body.appendChild(adAnchor);
-      adAnchor.click();
-      adAnchor.remove();
-    };
-
-    // গ্লোবাল ক্যাপচার ফেজে ইভেন্ট লিসেনার
-    document.addEventListener('click', (e) => {
-      const postBtn = getPostButton(e.target);
-      if (!postBtn) return;
-
-      // চেক করুন: বাটনে কি ইতিমধ্যে বিজ্ঞাপনের প্রথম ক্লিক সম্পন্ন হয়েছে?
-      if (postBtn.dataset.adUnlocked !== 'true') {
-        // ১ম ক্লিক: ইভেন্ট আটকানো, নতুন ট্যাবে বিজ্ঞাপন খোলা এবং আনলক মার্ক করা
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        postBtn.dataset.adUnlocked = 'true';
-        openAdTab();
-
-        this.showToast('বিজ্ঞাপন নতুন ট্যাবে খোলা হয়েছে। মূল কনটেন্ট দেখতে বাটনে পুনরায় ক্লিক করুন।', 'info');
-      }
-      // ২য় ক্লিক: adUnlocked === 'true' থাকায় স্বাভাবিকভাবে বাটনের কাজ (অনক্লিক বা লিংক) কার্যকর হবে
-    }, true);
+    // Disabled in applet environment to ensure direct responsiveness and avoid window.open
   }
 }
 
