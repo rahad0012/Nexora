@@ -1,0 +1,270 @@
+{
+  "entities": {
+    "News": {
+      "title": "News Article",
+      "description": "A news article published on Nexora",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the news item"
+        },
+        "title": {
+          "type": "string",
+          "description": "Headline of the news article"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the news article"
+        },
+        "date": {
+          "type": "string",
+          "description": "Publication date"
+        },
+        "readTime": {
+          "type": "string",
+          "description": "Estimated reading time"
+        },
+        "image": {
+          "type": "string",
+          "description": "Image URL or data URI"
+        },
+        "excerpt": {
+          "type": "string",
+          "description": "Summary excerpt"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author name"
+        },
+        "content": {
+          "type": "string",
+          "description": "Full HTML or text content"
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the article is published for public viewing"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp ISO string"
+        }
+      },
+      "required": ["title", "category", "published"]
+    },
+    "AiPrompt": {
+      "title": "AI Prompt",
+      "description": "A curated AI prompt on Nexora",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the prompt"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the prompt"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the prompt"
+        },
+        "tool": {
+          "type": "string",
+          "description": "AI tool or engine target"
+        },
+        "desc": {
+          "type": "string",
+          "description": "Short description"
+        },
+        "promptText": {
+          "type": "string",
+          "description": "Full prompt text"
+        },
+        "tips": {
+          "type": "string",
+          "description": "Engineering tips"
+        },
+        "params": {
+          "type": "object",
+          "description": "Key value parameters"
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the prompt is published for public viewing"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp ISO string"
+        }
+      },
+      "required": ["title", "category", "promptText", "published"]
+    },
+    "Technology": {
+      "title": "Technology Guide",
+      "description": "A technology article or guide on Nexora",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the technology guide"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the guide"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the guide"
+        },
+        "readTime": {
+          "type": "string",
+          "description": "Estimated reading time"
+        },
+        "image": {
+          "type": "string",
+          "description": "Cover image URL or data URI"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Short summary"
+        },
+        "guideContent": {
+          "type": "string",
+          "description": "Full guide content in HTML or text"
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the guide is published for public viewing"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp ISO string"
+        }
+      },
+      "required": ["title", "category", "published"]
+    },
+    "Book": {
+      "title": "Free Book",
+      "description": "A free/public domain book on Nexora",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the book"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the book"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author of the book"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the book"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language of the book"
+        },
+        "license": {
+          "type": "string",
+          "description": "License type"
+        },
+        "year": {
+          "type": "string",
+          "description": "Year of release or publication"
+        },
+        "cover": {
+          "type": "string",
+          "description": "Cover image URL or data URI"
+        },
+        "desc": {
+          "type": "string",
+          "description": "Book synopsis"
+        },
+        "gutenbergUrl": {
+          "type": "string",
+          "description": "External Gutenberg URL"
+        },
+        "pdfUrl": {
+          "type": "string",
+          "description": "Direct PDF download or reader URL"
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the book is published for public viewing"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp ISO string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp ISO string"
+        }
+      },
+      "required": ["title", "author", "category", "published"]
+    },
+    "Admin": {
+      "title": "Admin User",
+      "description": "Authorized administrator record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Admin Firebase User UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "Admin email address"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role such as admin or editor"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/news/{newsId}": {
+      "schema": { "$ref": "#/entities/News" },
+      "description": "Collection of news posts"
+    },
+    "/aiPrompts/{promptId}": {
+      "schema": { "$ref": "#/entities/AiPrompt" },
+      "description": "Collection of AI prompt posts"
+    },
+    "/technology/{techId}": {
+      "schema": { "$ref": "#/entities/Technology" },
+      "description": "Collection of technology guide posts"
+    },
+    "/books/{bookId}": {
+      "schema": { "$ref": "#/entities/Book" },
+      "description": "Collection of free books"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Collection of authorized administrators"
+    }
+  }
+}

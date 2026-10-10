@@ -39,6 +39,42 @@
 
 ---
 
+## 🔥 Firebase Authentication ও Cloud Firestore ডাটাবেজ ইন্টিগ্রেশন
+
+Nexora এখন আনুষ্ঠানিকভাবে **Firebase Authentication** এবং **Cloud Firestore Database**-এর সাথে সংযুক্ত।
+
+### ১. Firebase ডাটাবেজ স্ট্রাকচার (Collections)
+- `news`: সংবাদ প্রতিবেদনসমূহ
+- `aiPrompts`: এআই প্রম্পট টেমপ্লেটসমূহ
+- `technology`: প্রযুক্তি বিষয়ক গাইড ও টিউটোরিয়াল
+- `books`: উন্মুক্ত ফ্রি বই ও সরাসরি পিডিএফ লিংক
+- `admins`: অনুমোদিত অ্যাডমিনিস্ট্রেটর রেকর্ডস
+
+### ২. Firebase Authentication সেটআপ (Console Steps)
+1. [Firebase Console](https://console.firebase.google.com)-এ যান।
+2. আপনার প্রোজেক্ট নির্বাচন করুন এবং **Authentication > Sign-in method**-এ যান।
+3. **Email/Password** প্রোভাইডার সক্রিয় (Enable) করুন।
+4. **Users** ট্যাবে গিয়ে **"Add user"** ক্লিক করে আপনার অ্যাডমিন ইমেইল (যেমন: `mdrahad0529@gmail.com`) এবং একটি শক্তিশালী পাসওয়ার্ড দিয়ে অ্যাকাউন্ট তৈরি করুন।
+5. সাইটের অ্যাডমিন প্যানেলে সেই ইমেইল এবং পাসওয়ার্ড দিয়ে নিরাপদে লগইন করুন।
+
+### ৩. Cloud Firestore সিকিউরিটি রুলস (Security Rules)
+সাইটের রুট ফোল্ডারে `firestore.rules` ফাইল রয়েছে:
+- সাধারণ পাঠকরা শুধুমাত্র প্রকাশিত (`published == true`) কন্টেন্ট পড়তে পারবে।
+- ড্রাফট বা অপ্রকাশিত কন্টেন্ট সর্বসাধারণের কাছে গোপন থাকবে।
+- শুধুমাত্র অনুমোদিত অ্যাডমিন কন্টেন্ট তৈরি, আপডেট ও মুছে ফেলতে পারবে।
+
+---
+
+## 🚀 GitHub থেকে Netlify-তে লাইভ করার সহজ ধাপ
+1. আপনার কোড GitHub-এ পুশ করুন।
+2. [Netlify.com](https://netlify.com)-এ গিয়ে **Add new site > Import an existing project > GitHub** ক্লিক করুন।
+3. সেটিংস দিন:
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+4. **Deploy Site** ক্লিক করলেই আপনার সাইট বিশ্বব্যাপী আল্ট্রা-ফাস্ট CDN-এ লাইভ হয়ে যাবে!
+
+---
+
 ## 🛠 লোকাল মেশিনে রান করার নিয়ম
 ```bash
 # ডিপেনডেন্সি ইন্সটল করুন

@@ -3,6 +3,17 @@
  * Vanilla JavaScript Core Engine (বাংলা সংস্করণ)
  */
 
+import { 
+  adminSignIn, 
+  adminSignOut, 
+  onAdminAuthStateChanged, 
+  fetchCollection, 
+  saveDocument, 
+  deleteDocument,
+  isUserAdmin,
+  testConnection
+} from './firebase-config.js';
+
 // ==========================================================================
 // ১. বাংলা কন্টেন্ট ডেটাসেট (Content Datasets in Bengali)
 // ==========================================================================
@@ -534,13 +545,13 @@ class NexoraApp {
     this.currentBookItem = null;
     this.searchScope = 'all';
 
-    // অ্যাডমিন প্যানেল স্টেট ও সিকিউরিটি ক্রেডেনশিয়াল (Admin Panel State & Auth)
+    // অ্যাডমিন প্যানেল স্টেট ও ফায়ারবেস অথেন্টিকেশন (Admin Panel State & Firebase Auth)
     this.adminCurrentTab = 'list';
     this.adminFilterType = 'all';
     this.adminSearchQuery = '';
     this.adminEditingPost = null;
-    this.adminUsername = 'admin@nexora';
-    this.adminPassword = 'Nexora@admin$$2026';
+    this.currentAdminUser = null;
+    this.isFirestoreSyncing = false;
     this.pendingDelete = null;
     this.uploadedImageDataUrl = null;
     this.imageSourceMode = 'upload';
@@ -569,6 +580,100 @@ class NexoraApp {
     this.setupPostAdInterception();
     this.updateAdminStats();
     this.setupDropzoneEvents();
+    this.setupFirebaseAuthListener();
+    this.fetchFirestoreData();
+  }
+
+  setupFirebaseAuthListener() {
+    onAdminAuthStateChanged((user) => {
+      this.currentAdminUser = user;
+      this.updateAdminAuthUI();
+      // রিলোড ফ্রন্টএন্ড বা অ্যাডমিন পোস্ট লিস্ট যদি প্রয়োজন হয়
+      if (this.currentAdminUser && this.adminCurrentTab === 'list') {
+        this.renderAdminPostList();
+      }
+    });
+  }
+
+  updateAdminAuthUI() {
+    const userEmailSpan = document.getElementById('admin-current-user-email');
+    if (userEmailSpan) {
+      userEmailSpan.textContent = this.currentAdminUser ? (this.currentAdminUser.email || 'Admin') : 'অ্যাডমিন লগইন';
+    }
+  }
+
+  async fetchFirestoreData() {
+    try {
+      const isPublic = !this.isAdminAuthenticated();
+      const results = await Promise.allSettled([
+        fetchCollection('news', isPublic),
+        fetchCollection('aiPrompts', isPublic),
+        fetchCollection('technology', isPublic),
+        fetchCollection('books', isPublic)
+      ]);
+
+      const [nRes, pRes, tRes, bRes] = results;
+      let hasData = false;
+
+      if (nRes.status === 'fulfilled' && nRes.value && nRes.value.length > 0) {
+        newsData = nRes.value;
+        hasData = true;
+      }
+      if (pRes.status === 'fulfilled' && pRes.value && pRes.value.length > 0) {
+        promptsData = pRes.value;
+        hasData = true;
+      }
+      if (tRes.status === 'fulfilled' && tRes.value && tRes.value.length > 0) {
+        techData = tRes.value;
+        hasData = true;
+      }
+      if (bRes.status === 'fulfilled' && bRes.value && bRes.value.length > 0) {
+        booksData = bRes.value;
+        hasData = true;
+      }
+
+      if (hasData) {
+        saveStoredPosts();
+        this.renderCurrentPageContent();
+        this.updateAdminStats();
+        if (this.adminCurrentTab === 'list') {
+          this.renderAdminPostList();
+        }
+      }
+    } catch (err) {
+      console.warn('Fallback to local storage posts:', err);
+    }
+  }
+
+  async syncDefaultDataToFirestore() {
+    if (!this.isAdminAuthenticated()) {
+      this.openAdminLoginModal();
+      this.showToast('Firestore-এ সিঙ্ক করতে প্রথমে অ্যাডমিন হিসেবে লগইন করুন!', 'error');
+      return;
+    }
+
+    this.showToast('Cloud Firestore-এ প্রাথমিক কন্টেন্ট সিঙ্ক শুরু হচ্ছে...', 'info');
+    try {
+      const syncPromises = [];
+      for (const item of newsData) {
+        syncPromises.push(saveDocument('news', item.id, item));
+      }
+      for (const item of promptsData) {
+        syncPromises.push(saveDocument('aiPrompts', item.id, item));
+      }
+      for (const item of techData) {
+        syncPromises.push(saveDocument('technology', item.id, item));
+      }
+      for (const item of booksData) {
+        syncPromises.push(saveDocument('books', item.id, item));
+      }
+      await Promise.all(syncPromises);
+      this.showToast('সবগুলো কন্টেন্ট Cloud Firestore-এ সফলভাবে সংরক্ষিত হয়েছে!', 'success');
+      await this.fetchFirestoreData();
+    } catch (e) {
+      console.error('Firestore sync error:', e);
+      this.showToast('Firestore সিঙ্কে ত্রুটি: ' + (e.message || ''), 'error');
+    }
   }
 
   // ------------------------------------------------------------------------
@@ -1997,7 +2102,7 @@ class NexoraApp {
   // অ্যাডমিন কন্ট্রোল প্যানেল ইঞ্জিন ও নিরাপত্তা ব্যবস্থা (Admin Engine & Auth)
   // ------------------------------------------------------------------------
   isAdminAuthenticated() {
-    return sessionStorage.getItem('nexora_admin_auth') === 'true' || localStorage.getItem('nexora_admin_auth') === 'true';
+    return !!this.currentAdminUser;
   }
 
   ensureAdminLoginModalInDOM() {
@@ -2013,7 +2118,7 @@ class NexoraApp {
                 <span>নিরাপদ অ্যাডমিন অ্যাক্সেস</span>
               </div>
               <h3 class="modal-heading" id="admin-login-title" style="margin-top: 6px;">অ্যাডমিন লগইন (Admin Login)</h3>
-              <p class="admin-subheading">সাইট কন্ট্রোল প্যানেলে ঢুকতে ক্রেডেনশিয়াল দিন</p>
+              <p class="admin-subheading">সাইট কন্ট্রোল প্যানেলে ঢুকতে Firebase ক্রেডেনশিয়াল দিন</p>
             </div>
             <button type="button" class="modal-close-btn btn-admin" onclick="window.nexoraApp.closeModal('admin-login-modal')" aria-label="বন্ধ করুন">
               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -2024,12 +2129,12 @@ class NexoraApp {
             <form class="admin-login-form" id="admin-login-form" onsubmit="window.nexoraApp.handleAdminLoginSubmit(event)">
               <div class="admin-login-error" id="admin-login-error">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <span id="admin-login-error-msg">ভুল ইউজারনেম বা পাসওয়ার্ড! আবার চেষ্টা করুন।</span>
+                <span id="admin-login-error-msg">ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।</span>
               </div>
 
               <div class="form-group">
-                <label for="admin-login-username" class="form-label">ব্যবহারকারীর নাম (Username / Email) *</label>
-                <input type="text" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="admin@nexora" />
+                <label for="admin-login-username" class="form-label">অ্যাডমিন ইমেইল (Admin Email) *</label>
+                <input type="email" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="mdrahad0529@gmail.com অথবা আপনার অ্যাডমিন ইমেইল" />
               </div>
 
               <div class="form-group">
@@ -2048,7 +2153,7 @@ class NexoraApp {
               </button>
 
               <p class="admin-login-note">
-                অননুমোদিত প্রবেশ নিষিদ্ধ। সংরক্ষিত শুধুমাত্র নির্ধারিত অ্যাডমিনিস্ট্রেটরের জন্য।
+                অননুমোদিত প্রবেশ নিষিদ্ধ। Firebase Authentication ও ক্লাউড রুলস দ্বারা সুরক্ষিত।
               </p>
             </form>
           </div>
@@ -2106,39 +2211,53 @@ class NexoraApp {
     }, 150);
   }
 
-  handleAdminLoginSubmit(e) {
+  async handleAdminLoginSubmit(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
     const usernameInput = document.getElementById('admin-login-username');
     const passwordInput = document.getElementById('admin-login-password');
     const errEl = document.getElementById('admin-login-error');
     const errMsg = document.getElementById('admin-login-error-msg');
+    const submitBtn = document.getElementById('btn-submit-login');
     const card = document.querySelector('.admin-login-container');
 
     const enteredUser = usernameInput ? usernameInput.value.trim() : '';
     const enteredPass = passwordInput ? passwordInput.value.trim() : '';
 
-    if (enteredUser === this.adminUsername && enteredPass === this.adminPassword) {
-      // সফল অ্যাডমিন লগইন
-      sessionStorage.setItem('nexora_admin_auth', 'true');
-      localStorage.setItem('nexora_admin_auth', 'true');
+    if (!enteredUser || !enteredPass) {
+      if (errEl) {
+        errEl.style.display = 'flex';
+        if (errMsg) errMsg.textContent = 'ইমেইল এবং পাসওয়ার্ড উভয় ফিল্ড পূরণ করা আবশ্যক!';
+      }
+      return;
+    }
 
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>যাচাই হচ্ছে...</span>`;
+    }
+
+    try {
+      const user = await adminSignIn(enteredUser, enteredPass);
+      this.currentAdminUser = user;
       if (errEl) errEl.style.display = 'none';
       this.closeModal('admin-login-modal');
-      this.showToast('স্বাগতম admin@nexora! অ্যাডমিন ড্যাশবোর্ড সফলভাবে সক্রিয় হয়েছে।', 'success');
-
+      this.showToast(`স্বাগতম ${user.email}! Firebase Authentication সফল হয়েছে।`, 'success');
+      this.updateAdminAuthUI();
       setTimeout(() => {
         this.openAdminPanel();
       }, 150);
-    } else {
-      // ভুল ক্রেডেনশিয়াল
+    } catch (error) {
+      console.error("Firebase Login Error:", error);
       if (errEl) {
         errEl.style.display = 'flex';
         if (errMsg) {
-          if (!enteredUser || !enteredPass) {
-            errMsg.textContent = 'ইউজারনেম এবং পাসওয়ার্ড উভয় ফিল্ড পূরণ করা আবশ্যক!';
+          if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            errMsg.textContent = 'ভুল ইমেইল বা পাসওয়ার্ড! Firebase Console-এ নিবন্ধিত সঠিক অ্যাডমিন তথ্য দিন।';
+          } else if (error.code === 'auth/invalid-email') {
+            errMsg.textContent = 'অবৈধ ইমেইল ফরম্যাট! সঠিক ইমেইল ঠিকানা লিখুন।';
           } else {
-            errMsg.textContent = 'ভুল ইউজারনেম বা পাসওয়ার্ড! সঠিক ক্রেডেনশিয়াল দিন।';
+            errMsg.textContent = error.message || 'Firebase Authentication ত্রুটি। আবার চেষ্টা করুন।';
           }
         }
       }
@@ -2153,7 +2272,15 @@ class NexoraApp {
         passwordInput.value = '';
         passwordInput.focus();
       }
-      this.showToast('ভুল ইউজারনেম বা পাসওয়ার্ড!', 'error');
+      this.showToast('লগইন ব্যর্থ হয়েছে!', 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          <span>লগইন করুন ও প্রবেশ করুন</span>
+        `;
+      }
     }
   }
 
@@ -2175,11 +2302,17 @@ class NexoraApp {
     }
   }
 
-  adminLogout() {
-    sessionStorage.removeItem('nexora_admin_auth');
-    localStorage.removeItem('nexora_admin_auth');
-    this.closeModal('admin-modal');
-    this.showToast('অ্যাডমিন প্যানেল থেকে সফলভাবে লগআউট সম্পন্ন হয়েছে।', 'info');
+  async adminLogout() {
+    try {
+      await adminSignOut();
+      this.currentAdminUser = null;
+      this.updateAdminAuthUI();
+      this.closeModal('admin-modal');
+      this.showToast('অ্যাডমিন প্যানেল থেকে সফলভাবে লগআউট সম্পন্ন হয়েছে।', 'info');
+    } catch (e) {
+      this.currentAdminUser = null;
+      this.closeModal('admin-modal');
+    }
   }
 
   ensureAdminModalInDOM() {
@@ -2200,8 +2333,12 @@ class NexoraApp {
             <div class="admin-header-actions">
               <div class="admin-user-pill" title="লগইনকৃত অ্যাডমিন">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                <span>admin@nexora</span>
+                <span id="admin-current-user-email">admin@nexora</span>
               </div>
+              <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.syncDefaultDataToFirestore()" title="Firestore ডাটাবেজে সিঙ্ক করুন">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Firestore সিঙ্ক</span>
+              </button>
               <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.resetAllPostsToDefault()" title="ডিফল্ট ডেটায় রিসেট করুন">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                 <span>ডিফল্ট রিসেট</span>
@@ -3162,7 +3299,7 @@ class NexoraApp {
     this.toggleImageSource('upload');
   }
 
-  handleAdminFormSubmit(e) {
+  async handleAdminFormSubmit(e) {
     e.preventDefault();
 
     const editId = (document.getElementById('post-form-edit-id') || {}).value;
@@ -3211,168 +3348,199 @@ class NexoraApp {
       return raw.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
     };
 
-    if (editId) {
-      // EDIT MODE
-      // যদি টাইপ পরিবর্তন হয়ে থাকে, পুরাতন অ্যারে থেকে মুছে ফেলা হবে
-      if (origType && origType !== type) {
-        if (origType === 'news') {
-          const idx = newsData.findIndex(n => n.id === editId);
-          if (idx >= 0) newsData.splice(idx, 1);
-        } else if (origType === 'prompts') {
-          const idx = promptsData.findIndex(p => p.id === editId);
-          if (idx >= 0) promptsData.splice(idx, 1);
-        } else if (origType === 'tech') {
-          const idx = techData.findIndex(t => t.id === editId);
-          if (idx >= 0) techData.splice(idx, 1);
-        } else if (origType === 'books') {
-          const idx = booksData.findIndex(b => b.id === editId);
-          if (idx >= 0) booksData.splice(idx, 1);
-        }
-      }
+    const submitBtn = document.getElementById('btn-submit-post');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>সংরক্ষণ হচ্ছে...</span>`;
+    }
 
-      if (type === 'news') {
-        const existing = newsData.find(n => n.id === editId);
-        const itemObj = {
-          id: editId,
-          title,
-          category,
-          date,
-          readTime,
-          image: imageUrl,
-          excerpt: excerpt || title,
-          author: authorTool || 'নেক্সোরা সম্পাদকীয়',
-          content: formatAsHtml(content || excerpt)
-        };
-        if (existing) {
-          Object.assign(existing, itemObj);
-        } else {
-          newsData.unshift(itemObj);
-        }
-      } else if (type === 'prompts') {
-        const existing = promptsData.find(p => p.id === editId);
-        const itemObj = {
-          id: editId,
-          title,
-          category,
-          tool: authorTool || 'ChatGPT / Claude',
-          desc: excerpt || title,
-          promptText: promptText || excerpt || title,
-          tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
-          params: existing ? existing.params : {}
-        };
-        if (existing) {
-          Object.assign(existing, itemObj);
-        } else {
-          promptsData.unshift(itemObj);
-        }
-      } else if (type === 'tech') {
-        const existing = techData.find(t => t.id === editId);
-        const itemObj = {
-          id: editId,
-          title,
-          category,
-          readTime,
-          image: imageUrl,
-          summary: excerpt || title,
-          guideContent: formatAsHtml(content || excerpt)
-        };
-        if (existing) {
-          Object.assign(existing, itemObj);
-        } else {
-          techData.unshift(itemObj);
-        }
-      } else if (type === 'books') {
-        const existing = booksData.find(b => b.id === editId);
-        const itemObj = {
-          id: editId,
-          title,
-          author: authorTool || 'ক্লাসিক লেখক',
-          category,
-          language: 'বাংলা অনুবাদ ও মূল',
-          license: bookLicense,
-          year: bookYear,
-          cover: imageUrl,
-          desc: excerpt || title,
-          gutenbergUrl: bookUrl,
-          pdfUrl: bookPdf || (existing ? existing.pdfUrl : ''),
-          chapters: existing && existing.chapters && existing.chapters.length ? existing.chapters : [
-            {
-              heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
-              text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
-            }
-          ]
-        };
-        if (existing) {
-          Object.assign(existing, itemObj);
-        } else {
-          booksData.unshift(itemObj);
-        }
-      }
+    let savedItem = null;
+    const collectionName = type === 'news' ? 'news' : type === 'prompts' ? 'aiPrompts' : type === 'tech' ? 'technology' : 'books';
 
-      this.showToast('পোস্টের পরিবর্তন সফলভাবে সংরক্ষিত হয়েছে!', 'success');
-    } else {
-      // CREATE MODE
-      const newId = `${type === 'news' ? 'news' : type === 'prompts' ? 'prompt' : type === 'tech' ? 'tech' : 'book'}-${Date.now()}`;
-
-      if (type === 'news') {
-        newsData.unshift({
-          id: newId,
-          title,
-          category,
-          date,
-          readTime,
-          image: imageUrl,
-          excerpt: excerpt || title,
-          author: authorTool || 'নেক্সোরা সম্পাদকীয়',
-          content: formatAsHtml(content || excerpt)
-        });
-      } else if (type === 'prompts') {
-        promptsData.unshift({
-          id: newId,
-          title,
-          category,
-          tool: authorTool || 'ChatGPT / Midjourney',
-          desc: excerpt || title,
-          promptText: promptText || excerpt || title,
-          tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
-          params: {
-            'ক্যাটাগরি': category,
-            'টুল': authorTool || 'এআই ইঞ্জিন'
+    try {
+      if (editId) {
+        // EDIT MODE
+        if (origType && origType !== type) {
+          const oldCol = origType === 'news' ? 'news' : origType === 'prompts' ? 'aiPrompts' : origType === 'tech' ? 'technology' : 'books';
+          if (this.isAdminAuthenticated()) {
+            await deleteDocument(oldCol, editId);
           }
-        });
-      } else if (type === 'tech') {
-        techData.unshift({
-          id: newId,
-          title,
-          category,
-          readTime,
-          image: imageUrl,
-          summary: excerpt || title,
-          guideContent: formatAsHtml(content || excerpt)
-        });
-      } else if (type === 'books') {
-        booksData.unshift({
-          id: newId,
-          title,
-          author: authorTool || 'ক্লাসিক সাহিত্যিক',
-          category,
-          language: 'বাংলা সংস্করণ ও মূল',
-          license: bookLicense,
-          year: bookYear,
-          cover: imageUrl,
-          desc: excerpt || title,
-          gutenbergUrl: bookUrl,
-          pdfUrl: bookPdf || '',
-          chapters: [
-            {
-              heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
-              text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
-            }
-          ]
-        });
-      }
+          if (origType === 'news') {
+            const idx = newsData.findIndex(n => n.id === editId);
+            if (idx >= 0) newsData.splice(idx, 1);
+          } else if (origType === 'prompts') {
+            const idx = promptsData.findIndex(p => p.id === editId);
+            if (idx >= 0) promptsData.splice(idx, 1);
+          } else if (origType === 'tech') {
+            const idx = techData.findIndex(t => t.id === editId);
+            if (idx >= 0) techData.splice(idx, 1);
+          } else if (origType === 'books') {
+            const idx = booksData.findIndex(b => b.id === editId);
+            if (idx >= 0) booksData.splice(idx, 1);
+          }
+        }
 
-      this.showToast('নতুন পোস্ট সফলভাবে তৈরি ও প্রকাশিত হয়েছে!', 'success');
+        if (type === 'news') {
+          const existing = newsData.find(n => n.id === editId);
+          savedItem = {
+            id: editId,
+            title,
+            category,
+            date,
+            readTime,
+            image: imageUrl,
+            excerpt: excerpt || title,
+            author: authorTool || 'নেক্সোরা সম্পাদকীয়',
+            content: formatAsHtml(content || excerpt),
+            published: true
+          };
+          if (existing) Object.assign(existing, savedItem);
+          else newsData.unshift(savedItem);
+        } else if (type === 'prompts') {
+          const existing = promptsData.find(p => p.id === editId);
+          savedItem = {
+            id: editId,
+            title,
+            category,
+            tool: authorTool || 'ChatGPT / Claude',
+            desc: excerpt || title,
+            promptText: promptText || excerpt || title,
+            tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
+            params: existing && existing.params ? existing.params : {},
+            published: true
+          };
+          if (existing) Object.assign(existing, savedItem);
+          else promptsData.unshift(savedItem);
+        } else if (type === 'tech') {
+          const existing = techData.find(t => t.id === editId);
+          savedItem = {
+            id: editId,
+            title,
+            category,
+            readTime,
+            image: imageUrl,
+            summary: excerpt || title,
+            guideContent: formatAsHtml(content || excerpt),
+            published: true
+          };
+          if (existing) Object.assign(existing, savedItem);
+          else techData.unshift(savedItem);
+        } else if (type === 'books') {
+          const existing = booksData.find(b => b.id === editId);
+          savedItem = {
+            id: editId,
+            title,
+            author: authorTool || 'ক্লাসিক লেখক',
+            category,
+            language: 'বাংলা অনুবাদ ও মূল',
+            license: bookLicense,
+            year: bookYear,
+            cover: imageUrl,
+            desc: excerpt || title,
+            gutenbergUrl: bookUrl,
+            pdfUrl: bookPdf || (existing ? existing.pdfUrl : ''),
+            chapters: existing && existing.chapters && existing.chapters.length ? existing.chapters : [
+              {
+                heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
+                text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
+              }
+            ],
+            published: true
+          };
+          if (existing) Object.assign(existing, savedItem);
+          else booksData.unshift(savedItem);
+        }
+
+        if (this.isAdminAuthenticated() && savedItem) {
+          await saveDocument(collectionName, editId, savedItem);
+        }
+        this.showToast('পোস্টের পরিবর্তন সফলভাবে Cloud Firestore-এ সংরক্ষিত হয়েছে!', 'success');
+      } else {
+        // CREATE MODE
+        const newId = `${type === 'news' ? 'news' : type === 'prompts' ? 'prompt' : type === 'tech' ? 'tech' : 'book'}-${Date.now()}`;
+
+        if (type === 'news') {
+          savedItem = {
+            id: newId,
+            title,
+            category,
+            date,
+            readTime,
+            image: imageUrl,
+            excerpt: excerpt || title,
+            author: authorTool || 'নেক্সোরা সম্পাদকীয়',
+            content: formatAsHtml(content || excerpt),
+            published: true
+          };
+          newsData.unshift(savedItem);
+        } else if (type === 'prompts') {
+          savedItem = {
+            id: newId,
+            title,
+            category,
+            tool: authorTool || 'ChatGPT / Midjourney',
+            desc: excerpt || title,
+            promptText: promptText || excerpt || title,
+            tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
+            params: {
+              'ক্যাটাগরি': category,
+              'টুল': authorTool || 'এআই ইঞ্জিন'
+            },
+            published: true
+          };
+          promptsData.unshift(savedItem);
+        } else if (type === 'tech') {
+          savedItem = {
+            id: newId,
+            title,
+            category,
+            readTime,
+            image: imageUrl,
+            summary: excerpt || title,
+            guideContent: formatAsHtml(content || excerpt),
+            published: true
+          };
+          techData.unshift(savedItem);
+        } else if (type === 'books') {
+          savedItem = {
+            id: newId,
+            title,
+            author: authorTool || 'ক্লাসিক সাহিত্যিক',
+            category,
+            language: 'বাংলা সংস্করণ ও মূল',
+            license: bookLicense,
+            year: bookYear,
+            cover: imageUrl,
+            desc: excerpt || title,
+            gutenbergUrl: bookUrl,
+            pdfUrl: bookPdf || '',
+            chapters: [
+              {
+                heading: 'সূচনা অধ্যায় — নির্বাচিত পাঠ',
+                text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
+              }
+            ],
+            published: true
+          };
+          booksData.unshift(savedItem);
+        }
+
+        if (this.isAdminAuthenticated() && savedItem) {
+          await saveDocument(collectionName, newId, savedItem);
+        }
+        this.showToast('নতুন পোস্ট সফলভাবে Cloud Firestore-এ তৈরি ও প্রকাশিত হয়েছে!', 'success');
+      }
+    } catch (saveError) {
+      console.error('Firestore save error:', saveError);
+      this.showToast('লোকালে সংরক্ষিত, তবে Firestore: ' + (saveError.message || ''), 'warning');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span id="btn-submit-post-label">${editId ? 'পরিবর্তন সংরক্ষণ করুন (Update Post)' : 'পোস্ট সংরক্ষণ ও প্রকাশ করুন'}</span>
+        `;
+      }
     }
 
     // লোকাল স্টোরেজে সংরক্ষণ ও সাইট রেন্ডার
@@ -3403,17 +3571,26 @@ class NexoraApp {
     this.openModal('delete-confirm-modal');
   }
 
-  executeConfirmedDelete() {
+  async executeConfirmedDelete() {
     if (this.pendingDeleteType && this.pendingDeleteId) {
-      this.performDelete(this.pendingDeleteType, this.pendingDeleteId);
+      await this.performDelete(this.pendingDeleteType, this.pendingDeleteId);
       this.pendingDeleteType = null;
       this.pendingDeleteId = null;
     }
     this.closeModal('delete-confirm-modal');
   }
 
-  performDelete(type, id) {
+  async performDelete(type, id) {
     let deletedTitle = '';
+    const collectionName = type === 'news' ? 'news' : type === 'prompts' ? 'aiPrompts' : type === 'tech' ? 'technology' : 'books';
+
+    if (this.isAdminAuthenticated()) {
+      try {
+        await deleteDocument(collectionName, id);
+      } catch (delErr) {
+        console.error('Firestore delete error:', delErr);
+      }
+    }
 
     if (type === 'news') {
       const idx = newsData.findIndex(n => n.id === id);

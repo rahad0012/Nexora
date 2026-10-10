@@ -910,8 +910,12 @@
         <div class="admin-header-actions">
           <div class="admin-user-pill" title="লগইনকৃত অ্যাডমিন">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>admin@nexora</span>
+            <span id="admin-current-user-email">admin@nexora</span>
           </div>
+          <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.syncDefaultDataToFirestore()" title="Firestore ডাটাবেজে সিঙ্ক করুন">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>Firestore সিঙ্ক</span>
+          </button>
           <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.resetAllPostsToDefault()" title="ডিফল্ট ডেটায় রিসেট করুন">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
             <span>ডিফল্ট রিসেট</span>
@@ -1236,8 +1240,8 @@
           </div>
 
           <div class="form-group">
-            <label for="admin-login-username" class="form-label">ব্যবহারকারীর নাম (Username / Email) *</label>
-            <input type="text" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="admin@nexora" />
+            <label for="admin-login-username" class="form-label">অ্যাডমিন ইমেইল (Admin Email) *</label>
+            <input type="email" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="mdrahad0529@gmail.com অথবা আপনার অ্যাডমিন ইমেইল" />
           </div>
 
           <div class="form-group">
@@ -1256,7 +1260,7 @@
           </button>
 
           <p class="admin-login-note">
-            অননুমোদিত প্রবেশ নিষিদ্ধ। সংরক্ষিত শুধুমাত্র নির্ধারিত অ্যাডমিনিস্ট্রেটরের জন্য।
+            অননুমোদিত প্রবেশ নিষিদ্ধ। Firebase Authentication ও ক্লাউড রুলস দ্বারা সুরক্ষিত।
           </p>
         </form>
       </div>
@@ -1283,7 +1287,7 @@
     </div>
   </div>
 
-  <!-- Vanilla JavaScript -->
-  <script src="./script.js"></script>
+  <!-- Vanilla JavaScript (ES Module with Firebase) -->
+  <script type="module" src="./script.js"></script>
 </body>
 </html>
