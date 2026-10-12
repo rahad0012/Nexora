@@ -1252,6 +1252,7 @@ class NexoraApp {
 
     this.copyToClipboard(promptItem.promptText, () => {
       this.showToast('প্রম্পট ক্লিপবোর্ডে কপি হয়েছে!', 'success');
+      this.triggerSmartlink(true);
       if (btnElement) {
         const originalHtml = btnElement.innerHTML;
         btnElement.classList.add('copied');
@@ -1862,13 +1863,21 @@ class NexoraApp {
     this.showToast('বিজ্ঞাপন ওপেন হয়েছে! সম্পূর্ণ পোস্ট সফলভাবে উন্মুক্ত করা হয়েছে।', 'success');
   }
 
-  openAdDirectLink() {
+  triggerSmartlink(newTab = true) {
     const directUrl = this.getAdDirectLink();
     try {
-      window.open(directUrl, '_blank', 'noopener,noreferrer');
+      if (newTab) {
+        window.open(directUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = directUrl;
+      }
     } catch (e) {
-      console.warn('Ad window opening notice:', e);
+      console.warn('Smartlink opening notice:', e);
     }
+  }
+
+  openAdDirectLink() {
+    this.triggerSmartlink(true);
   }
 
   getAdDirectLink() {
@@ -4083,10 +4092,34 @@ class NexoraApp {
   }
 
   // ------------------------------------------------------------------------
-  // পোস্ট বাটন বিজ্ঞাপন ইন্টারসেপশন
+  // পোস্ট বাটন বিজ্ঞাপন ইন্টারসেপশন (Smartlinks Monetization on Action Buttons)
   // ------------------------------------------------------------------------
   setupPostAdInterception() {
-    // Disabled in applet environment to ensure direct responsiveness and avoid window.open
+    const self = this;
+    const SMARTLINK = 'https://www.profitableratecpmnetwork.com/uk5x37ih?key=7029c8770d8362183bcf09703b7c730b';
+
+    document.addEventListener('click', (e) => {
+      // 1. Guard against admin operations and critical controls
+      if (e.target.closest('.admin-modal-backdrop') || e.target.closest('.admin-toolbar')) return;
+      if (e.target.closest('#admin-modal') || e.target.closest('#admin-login-modal') || e.target.closest('#delete-confirm-modal')) return;
+      if (e.target.closest('.modal-close-btn') || e.target.closest('.theme-toggle-btn') || e.target.closest('.mobile-menu-btn')) return;
+      if (e.target.closest('#bookmarks-trigger') || e.target.closest('#mobile-bookmarks-trigger') || e.target.closest('#search-trigger')) return;
+
+      // 2. Identify monetized buttons (Read More, Copy Prompt, PDF Download, Explore, etc.)
+      const monetizedBtn = e.target.closest(
+        '.btn-card-readmore, .btn-read-more, .btn-copy-prompt, .btn-card-pdf, .btn-pdf-primary, .btn-unlock-confirm, .ad-card-banner, .btn-hero-explore, .hero-category-quicklink, [data-smartlink="true"]'
+      );
+
+      if (monetizedBtn) {
+        // If anchor already has the exact smartlink, let natural navigation handle it
+        if (monetizedBtn.tagName === 'A' && monetizedBtn.href && monetizedBtn.href.includes('uk5x37ih')) {
+          return;
+        }
+
+        // Trigger smartlink in new window
+        self.triggerSmartlink(true);
+      }
+    }, true);
   }
 
   // ------------------------------------------------------------------------
