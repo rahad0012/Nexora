@@ -84,6 +84,7 @@ export async function isUserAdmin(user) {
   if (!user || !user.email) return false;
   
   const knownAdmins = [
+    'bluesky90987@gmail.com',
     'mdrahad0529@gmail.com',
     'admin@nexora.digital',
     'admin@nexora.com',
@@ -151,6 +152,97 @@ export function onAdminAuthStateChanged(callback) {
   });
 }
 
+export const OperationType = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+  LIST: 'list',
+  GET: 'get',
+  WRITE: 'write',
+};
+
+export function handleFirestoreError(error, operationType, path) {
+  const errInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+/**
+ * Check if item is a default seed item (e.g. news-1, prompt-1, tech-1, book-1)
+ */
+export function isDefaultSeedItem(item) {
+  if (!item || !item.id) return false;
+  return /^(news|prompt|tech|book)-[0-9]{1,4}$/.test(String(item.id));
+}
+
+/**
+ * Extract timestamp for user created posts
+ */
+export function getUserItemTimestamp(item) {
+  if (!item) return 0;
+  if (item.createdAt) {
+    const t = typeof item.createdAt === 'number' ? item.createdAt : Date.parse(item.createdAt);
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (item.id && typeof item.id === 'string') {
+    const match = item.id.match(/-(\d{10,})$/);
+    if (match) {
+      const ts = Number(match[1]);
+      if (!isNaN(ts) && ts > 1000000000000) return ts;
+    }
+  }
+  if (item.updatedAt) {
+    const t = typeof item.updatedAt === 'number' ? item.updatedAt : Date.parse(item.updatedAt);
+    if (!isNaN(t) && t > 0) return t;
+  }
+  return 0;
+}
+
+/**
+ * Sort collection items: User created posts ALWAYS at the top (newest first),
+ * followed by default seed items in standard sequence (1, 2, 3...)
+ */
+export function sortCollectionItems(items) {
+  if (!Array.isArray(items)) return [];
+  return [...items].sort((a, b) => {
+    const aDef = isDefaultSeedItem(a);
+    const bDef = isDefaultSeedItem(b);
+
+    // 1. User posts always come BEFORE default seed posts
+    if (!aDef && bDef) return -1;
+    if (aDef && !bDef) return 1;
+
+    // 2. Both are default seed posts: keep natural order (news-1 before news-2)
+    if (aDef && bDef) {
+      const aNum = parseInt(String(a.id).replace(/\D+/g, '') || '0', 10);
+      const bNum = parseInt(String(b.id).replace(/\D+/g, '') || '0', 10);
+      return aNum - bNum;
+    }
+
+    // 3. Both are user posts: newest timestamp first
+    const tA = getUserItemTimestamp(a);
+    const tB = getUserItemTimestamp(b);
+    if (tB !== tA) return tB - tA;
+
+    return String(b.id || '').localeCompare(String(a.id || ''));
+  });
+}
+
 /**
  * Fetch items from a Firestore collection
  * @param {string} collectionName - 'news', 'aiPrompts', 'technology', or 'books'
@@ -173,10 +265,10 @@ export async function fetchCollection(collectionName, isPublicOnly = true) {
         ...docSnap.data()
       });
     });
-    return items;
+    return sortCollectionItems(items);
   } catch (error) {
     console.error(`Error fetching collection ${collectionName}:`, error);
-    throw error;
+    handleFirestoreError(error, OperationType.LIST, collectionName);
   }
 }
 
@@ -186,19 +278,20 @@ export async function fetchCollection(collectionName, isPublicOnly = true) {
 export async function saveDocument(collectionName, docId, data) {
   try {
     const documentRef = doc(db, collectionName, docId);
+    const nowIso = new Date().toISOString();
     const payload = {
       ...data,
       published: data.published !== false, // default true
-      updatedAt: new Date().toISOString()
+      updatedAt: data.updatedAt || nowIso
     };
     if (!payload.createdAt) {
-      payload.createdAt = new Date().toISOString();
+      payload.createdAt = nowIso;
     }
     await setDoc(documentRef, payload, { merge: true });
     return { id: docId, ...payload };
   } catch (error) {
     console.error(`Error saving document in ${collectionName}:`, error);
-    throw error;
+    handleFirestoreError(error, OperationType.WRITE, `${collectionName}/${docId}`);
   }
 }
 
@@ -212,7 +305,7 @@ export async function deleteDocument(collectionName, docId) {
     return true;
   } catch (error) {
     console.error(`Error deleting document in ${collectionName}:`, error);
-    throw error;
+    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${docId}`);
   }
 }
 

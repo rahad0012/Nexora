@@ -10,6 +10,7 @@ service cloud.firestore {
     // Check if user is an authorized admin
     function isAdmin() {
       return isSignedIn() && (
+        request.auth.token.email == "bluesky90987@gmail.com" ||
         request.auth.token.email == "mdrahad0529@gmail.com" ||
         request.auth.token.email == "admin@nexora.digital" ||
         request.auth.token.email == "admin@nexora.com" ||

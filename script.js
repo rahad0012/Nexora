@@ -488,17 +488,92 @@ let promptsData = [];
 let techData = [];
 let booksData = [];
 
+/**
+ * Check if a post is one of the initial default seed posts (e.g. news-1, prompt-1, tech-1, book-1)
+ */
+export function isDefaultPost(item) {
+  if (!item || !item.id) return false;
+  return /^(news|prompt|tech|book)-[0-9]{1,4}$/.test(String(item.id));
+}
+
+/**
+ * Extract reliable epoch timestamp in milliseconds for user created posts.
+ */
+export function getUserPostTimestamp(item) {
+  if (!item) return 0;
+
+  // 1. Explicit createdAt ISO string or numeric epoch
+  if (item.createdAt) {
+    const t = typeof item.createdAt === 'number' ? item.createdAt : Date.parse(item.createdAt);
+    if (!isNaN(t) && t > 0) return t;
+  }
+
+  // 2. ID ending with unix timestamp (e.g. news-1776033830123)
+  if (item.id && typeof item.id === 'string') {
+    const idMatch = item.id.match(/-(\d{10,})$/);
+    if (idMatch) {
+      const ts = Number(idMatch[1]);
+      if (!isNaN(ts) && ts > 1000000000000) return ts;
+    }
+  }
+
+  // 3. Explicit updatedAt ISO string or numeric epoch
+  if (item.updatedAt) {
+    const t = typeof item.updatedAt === 'number' ? item.updatedAt : Date.parse(item.updatedAt);
+    if (!isNaN(t) && t > 0) return t;
+  }
+
+  // 4. Parse date string if available
+  if (item.date && typeof item.date === 'string') {
+    const parsed = Date.parse(item.date);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+
+  return 0;
+}
+
+/**
+ * Sorts array of posts so new user posts are ALWAYS at the top (newest first),
+ * followed by default seed posts in natural order (1, 2, 3...)
+ */
+export function sortPostsNewestFirst(items) {
+  if (!Array.isArray(items)) return [];
+  return [...items].sort((a, b) => {
+    const aDef = isDefaultPost(a);
+    const bDef = isDefaultPost(b);
+
+    // 1. User created posts always come BEFORE default seed posts
+    if (!aDef && bDef) return -1;
+    if (aDef && !bDef) return 1;
+
+    // 2. Both are default seed posts: preserve natural numerical order (e.g. news-1 before news-2)
+    if (aDef && bDef) {
+      const aNum = parseInt(String(a.id).replace(/\D+/g, '') || '0', 10);
+      const bNum = parseInt(String(b.id).replace(/\D+/g, '') || '0', 10);
+      return aNum - bNum;
+    }
+
+    // 3. Both are user posts: newest timestamp first
+    const tA = getUserPostTimestamp(a);
+    const tB = getUserPostTimestamp(b);
+    if (tB !== tA) {
+      return tB - tA;
+    }
+    return String(b.id || '').localeCompare(String(a.id || ''));
+  });
+}
+
 function loadStoredPosts() {
   try {
     const sn = localStorage.getItem('nexora_news_data');
-    newsData = sn ? JSON.parse(sn) : JSON.parse(JSON.stringify(defaultNewsData));
+    newsData = sortPostsNewestFirst(sn ? JSON.parse(sn) : JSON.parse(JSON.stringify(defaultNewsData)));
     const sp = localStorage.getItem('nexora_prompts_data');
-    promptsData = sp ? JSON.parse(sp) : JSON.parse(JSON.stringify(defaultPromptsData));
+    promptsData = sortPostsNewestFirst(sp ? JSON.parse(sp) : JSON.parse(JSON.stringify(defaultPromptsData)));
     const st = localStorage.getItem('nexora_tech_data');
-    techData = st ? JSON.parse(st) : JSON.parse(JSON.stringify(defaultTechData));
+    techData = sortPostsNewestFirst(st ? JSON.parse(st) : JSON.parse(JSON.stringify(defaultTechData)));
     const sb = localStorage.getItem('nexora_books_data');
     if (sb) {
-      booksData = JSON.parse(sb);
+      booksData = sortPostsNewestFirst(JSON.parse(sb));
       // Migrate missing pdfUrl from default data if present
       booksData.forEach(b => {
         if (!b.pdfUrl) {
@@ -507,19 +582,23 @@ function loadStoredPosts() {
         }
       });
     } else {
-      booksData = JSON.parse(JSON.stringify(defaultBooksData));
+      booksData = sortPostsNewestFirst(JSON.parse(JSON.stringify(defaultBooksData)));
     }
   } catch(e) {
     console.error('Error loading posts from storage', e);
-    newsData = JSON.parse(JSON.stringify(defaultNewsData));
-    promptsData = JSON.parse(JSON.stringify(defaultPromptsData));
-    techData = JSON.parse(JSON.stringify(defaultTechData));
-    booksData = JSON.parse(JSON.stringify(defaultBooksData));
+    newsData = sortPostsNewestFirst(JSON.parse(JSON.stringify(defaultNewsData)));
+    promptsData = sortPostsNewestFirst(JSON.parse(JSON.stringify(defaultPromptsData)));
+    techData = sortPostsNewestFirst(JSON.parse(JSON.stringify(defaultTechData)));
+    booksData = sortPostsNewestFirst(JSON.parse(JSON.stringify(defaultBooksData)));
   }
 }
 
 function saveStoredPosts() {
   try {
+    newsData = sortPostsNewestFirst(newsData);
+    promptsData = sortPostsNewestFirst(promptsData);
+    techData = sortPostsNewestFirst(techData);
+    booksData = sortPostsNewestFirst(booksData);
     localStorage.setItem('nexora_news_data', JSON.stringify(newsData));
     localStorage.setItem('nexora_prompts_data', JSON.stringify(promptsData));
     localStorage.setItem('nexora_tech_data', JSON.stringify(techData));
@@ -555,6 +634,10 @@ class NexoraApp {
     this.pendingDelete = null;
     this.uploadedImageDataUrl = null;
     this.imageSourceMode = 'upload';
+
+    // অ্যাড আনলক ও রিড মোর গেট স্টেট (Ad Unlock & Read More State)
+    this.unlockedPostIds = new Set();
+    this.pendingUnlockTarget = null;
 
     // বর্তমান পেজ শনাক্তকরণ
     this.page = this.detectCurrentPage();
@@ -618,19 +701,19 @@ class NexoraApp {
       let hasData = false;
 
       if (nRes.status === 'fulfilled' && nRes.value && nRes.value.length > 0) {
-        newsData = nRes.value;
+        newsData = sortPostsNewestFirst(nRes.value);
         hasData = true;
       }
       if (pRes.status === 'fulfilled' && pRes.value && pRes.value.length > 0) {
-        promptsData = pRes.value;
+        promptsData = sortPostsNewestFirst(pRes.value);
         hasData = true;
       }
       if (tRes.status === 'fulfilled' && tRes.value && tRes.value.length > 0) {
-        techData = tRes.value;
+        techData = sortPostsNewestFirst(tRes.value);
         hasData = true;
       }
       if (bRes.status === 'fulfilled' && bRes.value && bRes.value.length > 0) {
-        booksData = bRes.value;
+        booksData = sortPostsNewestFirst(bRes.value);
         hasData = true;
       }
 
@@ -815,7 +898,13 @@ class NexoraApp {
   }
 
   renderCurrentPageContent() {
-    // হোমপেজ হলে সবগুলো গ্রিড রেন্ডার হবে
+    // Ensure all posts are strictly sorted newest first before rendering on any page
+    newsData = sortPostsNewestFirst(newsData);
+    promptsData = sortPostsNewestFirst(promptsData);
+    techData = sortPostsNewestFirst(techData);
+    booksData = sortPostsNewestFirst(booksData);
+
+    // হোমপেজ হলে সবগুলো গ্রিড রেন্ডার হবে (টপ আইটেমগুলো প্রথমে)
     if (this.page === 'home') {
       this.renderNews(newsData.slice(0, 3));
       this.renderPrompts(promptsData.slice(0, 4));
@@ -982,7 +1071,7 @@ class NexoraApp {
           <p class="news-card-excerpt">${story.excerpt}</p>
           <div class="news-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openArticleReader('${story.id}')">
-              <span>আরও পড়ুন (Read More)</span>
+              <span>আরও পড়ুন</span>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${story.id}', 'article', this)" title="পোস্টের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
@@ -1034,18 +1123,20 @@ class NexoraApp {
         </div>
 
         <div class="prompt-card-actions">
-          <button type="button" class="btn-copy-prompt" onclick="window.nexoraApp.copyPromptText('${prompt.id}', this)">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>কপি প্রম্পট</span>
-          </button>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${prompt.id}', 'prompt', this)" title="প্রম্পটের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-          </button>
-          <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openPromptModal('${prompt.id}')">
-            <span>আরও পড়ুন (Read More)</span>
+          <div class="prompt-actions-left">
+            <button type="button" class="btn-copy-prompt" onclick="window.nexoraApp.copyPromptText('${prompt.id}', this)" title="প্রম্পট টেক্সট কপি করুন" aria-label="কপি">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>কপি</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${prompt.id}', 'prompt', this)" title="প্রম্পটের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+          </div>
+          <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openPromptModal('${prompt.id}')" aria-label="আরও পড়ুন">
+            <span>আরও পড়ুন</span>
           </button>
         </div>
       </div>
@@ -1080,7 +1171,7 @@ class NexoraApp {
           <p class="tech-card-summary">${guide.summary}</p>
           <div class="tech-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openTechReader('${guide.id}')">
-              <span>আরও পড়ুন (Read More)</span>
+              <span>আরও পড়ুন</span>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${guide.id}', 'tech', this)" title="গাইডের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
@@ -1128,7 +1219,7 @@ class NexoraApp {
         <div class="book-card-footer">
           <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openBookReader('${book.id}')" style="flex: 1;">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            <span>আরও পড়ুন (Read More)</span>
+            <span>আরও পড়ুন</span>
           </button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${book.id}', 'book', this)" title="বইয়ের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
@@ -1305,7 +1396,7 @@ class NexoraApp {
     const cleanSub = (subsearchQuery || '').toLowerCase().trim();
 
     if (sectionKey === 'news') {
-      let filtered = newsData;
+      let filtered = sortPostsNewestFirst(newsData);
       if (filterCategory !== 'all') {
         filtered = filtered.filter(item => item.category === filterCategory);
       }
@@ -1315,7 +1406,7 @@ class NexoraApp {
       this.renderNews(filtered);
     } 
     else if (sectionKey === 'prompts') {
-      let filtered = promptsData;
+      let filtered = sortPostsNewestFirst(promptsData);
       if (filterCategory !== 'all') {
         filtered = filtered.filter(item => item.category === filterCategory);
       }
@@ -1325,7 +1416,7 @@ class NexoraApp {
       this.renderPrompts(filtered);
     }
     else if (sectionKey === 'tech') {
-      let filtered = techData;
+      let filtered = sortPostsNewestFirst(techData);
       if (filterCategory !== 'all') {
         filtered = filtered.filter(item => item.category === filterCategory);
       }
@@ -1335,7 +1426,7 @@ class NexoraApp {
       this.renderTech(filtered);
     }
     else if (sectionKey === 'books') {
-      let filtered = booksData;
+      let filtered = sortPostsNewestFirst(booksData);
       if (filterCategory !== 'all') {
         filtered = filtered.filter(item => item.category === filterCategory);
       }
@@ -1403,7 +1494,7 @@ class NexoraApp {
           </div>
           <div class="reader-readmore-bar">
             <button type="button" class="btn btn-read-more" id="btn-read-more-post" onclick="window.nexoraApp.togglePostReadMore(this)">
-              <span class="read-more-label">আরও পড়ুন (Read More)</span>
+              <span class="read-more-label">আরও পড়ুন</span>
               <svg class="read-more-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
           </div>
@@ -1466,7 +1557,7 @@ class NexoraApp {
           </div>
           <div class="reader-readmore-bar">
             <button type="button" class="btn btn-read-more" id="btn-read-more-post" onclick="window.nexoraApp.togglePostReadMore(this)">
-              <span class="read-more-label">আরও পড়ুন (Read More)</span>
+              <span class="read-more-label">আরও পড়ুন</span>
               <svg class="read-more-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
           </div>
@@ -1478,24 +1569,59 @@ class NexoraApp {
   }
 
   togglePostReadMore(btn) {
+    this.handlePostReadMoreClick(btn);
+  }
+
+  handlePostReadMoreClick(btn) {
     const wrapper = document.getElementById('reader-expand-wrapper');
-    const overlay = document.getElementById('reader-fade-overlay');
     if (!wrapper) return;
 
-    const isExpanded = wrapper.classList.toggle('expanded');
-    if (overlay) overlay.style.display = isExpanded ? 'none' : 'block';
+    const isExpanded = wrapper.classList.contains('expanded');
+    if (isExpanded) {
+      // User is collapsing the expanded content
+      this.collapsePostContent(btn);
+      return;
+    }
+
+    // Check if this post is already unlocked in this session
+    const currentId = this.currentReaderItem ? String(this.currentReaderItem.id) : null;
+    if (currentId && this.unlockedPostIds && this.unlockedPostIds.has(currentId)) {
+      this.expandPostContent(btn);
+      return;
+    }
+
+    // Trigger the ad unlock modal popup: "পোস্ট পড়ার জন্য একটি অ্যাড দেখুন"
+    this.pendingUnlockTarget = { type: 'post', btn: btn, id: currentId };
+    this.ensureAdUnlockModalInDOM();
+    this.openModal('ad-unlock-modal');
+  }
+
+  expandPostContent(btn) {
+    const wrapper = document.getElementById('reader-expand-wrapper');
+    const overlay = document.getElementById('reader-fade-overlay');
+    if (wrapper) wrapper.classList.add('expanded');
+    if (overlay) overlay.style.display = 'none';
 
     if (btn) {
       const label = btn.querySelector('.read-more-label');
       const icon = btn.querySelector('.read-more-icon');
-      if (isExpanded) {
-        if (label) label.textContent = 'সংক্ষিপ্ত করুন (Show Less)';
-        if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
-      } else {
-        if (label) label.textContent = 'আরও পড়ুন (Read More)';
-        if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
-        wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      if (label) label.textContent = 'সংক্ষিপ্ত করুন';
+      if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
+    }
+  }
+
+  collapsePostContent(btn) {
+    const wrapper = document.getElementById('reader-expand-wrapper');
+    const overlay = document.getElementById('reader-fade-overlay');
+    if (wrapper) wrapper.classList.remove('expanded');
+    if (overlay) overlay.style.display = 'block';
+
+    if (btn) {
+      const label = btn.querySelector('.read-more-label');
+      const icon = btn.querySelector('.read-more-icon');
+      if (label) label.textContent = 'আরও পড়ুন';
+      if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+      if (wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
 
@@ -1637,7 +1763,7 @@ class NexoraApp {
             </div>
             <div class="reader-readmore-bar">
               <button type="button" class="btn btn-read-more" id="btn-read-more-book" onclick="window.nexoraApp.toggleBookReadMore(this)">
-                <span class="read-more-label">আরও পড়ুন (Read More)</span>
+                <span class="read-more-label">আরও পড়ুন</span>
                 <svg class="read-more-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
             </div>
@@ -1650,25 +1776,183 @@ class NexoraApp {
   }
 
   toggleBookReadMore(btn) {
+    this.handleBookReadMoreClick(btn);
+  }
+
+  handleBookReadMoreClick(btn) {
     const wrapper = document.getElementById('book-expand-wrapper');
-    const overlay = document.getElementById('book-fade-overlay');
     if (!wrapper) return;
 
-    const isExpanded = wrapper.classList.toggle('expanded');
-    if (overlay) overlay.style.display = isExpanded ? 'none' : 'block';
+    const isExpanded = wrapper.classList.contains('expanded');
+    if (isExpanded) {
+      this.collapseBookContent(btn);
+      return;
+    }
+
+    const currentBook = this.currentBookItem ? String(this.currentBookItem.id) : null;
+    if (currentBook && this.unlockedPostIds && this.unlockedPostIds.has('book_' + currentBook)) {
+      this.expandBookContent(btn);
+      return;
+    }
+
+    this.pendingUnlockTarget = { type: 'book', btn: btn, id: currentBook };
+    this.ensureAdUnlockModalInDOM();
+    this.openModal('ad-unlock-modal');
+  }
+
+  expandBookContent(btn) {
+    const wrapper = document.getElementById('book-expand-wrapper');
+    const overlay = document.getElementById('book-fade-overlay');
+    if (wrapper) wrapper.classList.add('expanded');
+    if (overlay) overlay.style.display = 'none';
 
     if (btn) {
       const label = btn.querySelector('.read-more-label');
       const icon = btn.querySelector('.read-more-icon');
-      if (isExpanded) {
-        if (label) label.textContent = 'সংক্ষিপ্ত করুন (Show Less)';
-        if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
-      } else {
-        if (label) label.textContent = 'আরও পড়ুন (Read More)';
-        if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
-        wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      if (label) label.textContent = 'সংক্ষিপ্ত করুন';
+      if (icon) icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
     }
+  }
+
+  collapseBookContent(btn) {
+    const wrapper = document.getElementById('book-expand-wrapper');
+    const overlay = document.getElementById('book-fade-overlay');
+    if (wrapper) wrapper.classList.remove('expanded');
+    if (overlay) overlay.style.display = 'block';
+
+    if (btn) {
+      const label = btn.querySelector('.read-more-label');
+      const icon = btn.querySelector('.read-more-icon');
+      if (label) label.textContent = 'আরও পড়ুন';
+      if (icon) icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+      if (wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // অ্যাড আনলক ও পোস্ট ওপেন লজিক (Ad Unlock & Gate Handler)
+  // ------------------------------------------------------------------------
+  confirmAdUnlock(e) {
+    const isAnchor = e && e.currentTarget && e.currentTarget.tagName === 'A' && e.currentTarget.getAttribute('href') && !e.currentTarget.getAttribute('href').startsWith('javascript');
+    if (!isAnchor) {
+      // ১. বাটনে ক্লিক করলে অ্যাড ওপেন হবে (Smartlink)
+      this.openAdDirectLink();
+    }
+
+    // ২. পপআপ মোডাল ক্লোজ হবে
+    this.closeModal('ad-unlock-modal');
+
+    // ৩. আনলক আইডি চিহ্নিত করা
+    const target = this.pendingUnlockTarget;
+    if (target) {
+      if (!this.unlockedPostIds) this.unlockedPostIds = new Set();
+      if (target.id) {
+        this.unlockedPostIds.add(target.type === 'book' ? ('book_' + target.id) : String(target.id));
+      }
+
+      // ৪. তারপর পোস্ট ওপেন/এক্সপ্যান্ড হবে
+      if (target.type === 'post') {
+        this.expandPostContent(target.btn);
+      } else if (target.type === 'book') {
+        this.expandBookContent(target.btn);
+      }
+      this.pendingUnlockTarget = null;
+    }
+
+    this.showToast('বিজ্ঞাপন ওপেন হয়েছে! সম্পূর্ণ পোস্ট সফলভাবে উন্মুক্ত করা হয়েছে।', 'success');
+  }
+
+  openAdDirectLink() {
+    const directUrl = this.getAdDirectLink();
+    try {
+      window.open(directUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      console.warn('Ad window opening notice:', e);
+    }
+  }
+
+  getAdDirectLink() {
+    const SMARTLINK = 'https://www.profitableratecpmnetwork.com/uk5x37ih?key=7029c8770d8362183bcf09703b7c730b';
+    const stored = localStorage.getItem('nexora_custom_ad_link');
+    if (stored && stored.trim() && !stored.includes('.js')) return stored.trim();
+    // ডিফল্ট Smartlink CPM নেটওয়ার্ক লিংক
+    return SMARTLINK;
+  }
+
+  setCustomAdLink(url) {
+    if (url && url.trim()) {
+      localStorage.setItem('nexora_custom_ad_link', url.trim());
+      this.showToast('ডিরেক্ট অ্যাড লিংক সফলভাবে আপডেট করা হয়েছে!', 'success');
+    } else {
+      localStorage.removeItem('nexora_custom_ad_link');
+      this.showToast('ডিফল্ট অ্যাড লিংকে রিসেট করা হয়েছে।', 'info');
+    }
+  }
+
+  promptSetCustomAdLink() {
+    const current = localStorage.getItem('nexora_custom_ad_link') || '';
+    const input = prompt('Adsterra বা CPM নেটওয়ার্কের ডিরেক্ট অ্যাড লিংক (Direct Link URL) প্রদান করুন:', current);
+    if (input !== null) {
+      this.setCustomAdLink(input);
+    }
+  }
+
+  ensureAdUnlockModalInDOM() {
+    if (document.getElementById('ad-unlock-modal')) return;
+    const adUrl = this.getAdDirectLink();
+    const markup = `
+      <div class="modal-backdrop" id="ad-unlock-modal" role="dialog" aria-modal="true" aria-labelledby="ad-unlock-modal-title" aria-hidden="true" style="z-index: 100050;">
+        <div class="modal-container ad-unlock-modal-container">
+          <div class="modal-header ad-unlock-modal-header">
+            <div class="ad-unlock-badge-row">
+              <span class="ad-tag-chip">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                স্পন্সর বিজ্ঞাপন
+              </span>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="window.nexoraApp.closeModal('ad-unlock-modal')" aria-label="বন্ধ করুন">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="modal-body ad-unlock-modal-body">
+            <div class="ad-unlock-hero-icon">
+              <div class="ad-icon-circle">
+                <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="2" fill="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </div>
+            </div>
+            <h3 class="ad-unlock-title" id="ad-unlock-modal-title">পোস্ট পড়ার জন্য একটি অ্যাড দেখুন</h3>
+            <p class="ad-unlock-desc">
+              সম্পূর্ণ পোস্টটি উন্মুক্ত করার জন্য নিচের স্পন্সর বিজ্ঞাপনটি ওপেন করুন। বিজ্ঞাপন ওপেন হওয়ার সাথে সাথেই আপনার সম্পূর্ণ পোস্ট পড়া শুরু হবে।
+            </p>
+
+            <div class="ad-unlock-banner-card">
+              <div class="ad-unlock-banner-top">
+                <span class="ad-sponsor-pill">SPONSORED AD</span>
+                <span class="ad-verified-tag">✓ ভেরিফাইড অ্যাডভার্টাইজার</span>
+              </div>
+              <div class="ad-unlock-banner-body">
+                <div class="ad-sponsor-box">
+                  <div class="ad-sponsor-kicker">নেক্সোরা পার্টনার নেটওয়ার্ক</div>
+                  <h4 class="ad-sponsor-headline">স্মার্ট ডিজিটাল প্রোডাক্ট ও এক্সক্লুসিভ টেকনোলজি অফার</h4>
+                  <p class="ad-sponsor-sub">বিজ্ঞাপনটি ওপেন করে স্পন্সর পেজটি ভিজিট করুন এবং সাথে সাথে ফুল পোস্ট আনলক করুন।</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="ad-unlock-actions">
+              <a href="${adUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg btn-unlock-confirm" id="btn-ad-unlock-confirm" onclick="window.nexoraApp.confirmAdUnlock(event)">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <span>অ্যাড ওপেন করুন এবং পোস্ট পড়ুন</span>
+              </a>
+              <button type="button" class="btn btn-ghost" onclick="window.nexoraApp.closeModal('ad-unlock-modal')">
+                পরে পড়ুন
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', markup);
   }
 
   // ------------------------------------------------------------------------
@@ -2247,7 +2531,7 @@ class NexoraApp {
 
               <div class="form-group">
                 <label for="admin-login-username" class="form-label">অ্যাডমিন ইমেইল (Admin Email) *</label>
-                <input type="email" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="mdrahad0529@gmail.com অথবা আপনার অ্যাডমিন ইমেইল" />
+                <input type="email" id="admin-login-username" class="form-input" required autocomplete="username" placeholder="Email" />
               </div>
 
               <div class="form-group">
@@ -2803,6 +3087,8 @@ class NexoraApp {
         date: n.date,
         readTime: n.readTime,
         snippet: n.excerpt,
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
         raw: n
       });
     });
@@ -2817,6 +3103,8 @@ class NexoraApp {
         author: p.tool,
         date: p.tool,
         snippet: p.desc,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
         raw: p
       });
     });
@@ -2831,6 +3119,8 @@ class NexoraApp {
         author: 'টেক গাইড',
         date: t.readTime,
         snippet: t.summary,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
         raw: t
       });
     });
@@ -2845,10 +3135,12 @@ class NexoraApp {
         author: `${b.author} (${b.year})`,
         date: b.license,
         snippet: b.desc,
+        createdAt: b.createdAt,
+        updatedAt: b.updatedAt,
         raw: b
       });
     });
-    return list;
+    return sortPostsNewestFirst(list);
   }
 
   renderAdminPostList() {
@@ -3505,10 +3797,13 @@ class NexoraApp {
             excerpt: excerpt || title,
             author: authorTool || 'নেক্সোরা সম্পাদকীয়',
             content: formatAsHtml(content || excerpt),
-            published: true
+            published: true,
+            createdAt: (existing && existing.createdAt) || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           if (existing) Object.assign(existing, savedItem);
           else newsData.unshift(savedItem);
+          newsData = sortPostsNewestFirst(newsData);
         } else if (type === 'prompts') {
           const existing = promptsData.find(p => p.id === editId);
           savedItem = {
@@ -3520,10 +3815,13 @@ class NexoraApp {
             promptText: promptText || excerpt || title,
             tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
             params: existing && existing.params ? existing.params : {},
-            published: true
+            published: true,
+            createdAt: (existing && existing.createdAt) || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           if (existing) Object.assign(existing, savedItem);
           else promptsData.unshift(savedItem);
+          promptsData = sortPostsNewestFirst(promptsData);
         } else if (type === 'tech') {
           const existing = techData.find(t => t.id === editId);
           savedItem = {
@@ -3534,10 +3832,13 @@ class NexoraApp {
             image: imageUrl,
             summary: excerpt || title,
             guideContent: formatAsHtml(content || excerpt),
-            published: true
+            published: true,
+            createdAt: (existing && existing.createdAt) || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           if (existing) Object.assign(existing, savedItem);
           else techData.unshift(savedItem);
+          techData = sortPostsNewestFirst(techData);
         } else if (type === 'books') {
           const existing = booksData.find(b => b.id === editId);
           savedItem = {
@@ -3558,10 +3859,13 @@ class NexoraApp {
                 text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
               }
             ],
-            published: true
+            published: true,
+            createdAt: (existing && existing.createdAt) || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           if (existing) Object.assign(existing, savedItem);
           else booksData.unshift(savedItem);
+          booksData = sortPostsNewestFirst(booksData);
         }
 
         if (this.isAdminAuthenticated() && savedItem) {
@@ -3569,8 +3873,10 @@ class NexoraApp {
         }
         this.showToast('পোস্টের পরিবর্তন সফলভাবে Cloud Firestore-এ সংরক্ষিত হয়েছে!', 'success');
       } else {
-        // CREATE MODE
-        const newId = `${type === 'news' ? 'news' : type === 'prompts' ? 'prompt' : type === 'tech' ? 'tech' : 'book'}-${Date.now()}`;
+        // CREATE MODE — সবসময় নতুন পোস্ট পেজের শীর্ষে (Top) থাকবে
+        const nowIso = new Date().toISOString();
+        const nowMs = Date.now();
+        const newId = `${type === 'news' ? 'news' : type === 'prompts' ? 'prompt' : type === 'tech' ? 'tech' : 'book'}-${nowMs}`;
 
         if (type === 'news') {
           savedItem = {
@@ -3583,9 +3889,12 @@ class NexoraApp {
             excerpt: excerpt || title,
             author: authorTool || 'নেক্সোরা সম্পাদকীয়',
             content: formatAsHtml(content || excerpt),
-            published: true
+            published: true,
+            createdAt: nowIso,
+            updatedAt: nowIso
           };
           newsData.unshift(savedItem);
+          newsData = sortPostsNewestFirst(newsData);
         } else if (type === 'prompts') {
           savedItem = {
             id: newId,
@@ -3599,9 +3908,12 @@ class NexoraApp {
               'ক্যাটাগরি': category,
               'টুল': authorTool || 'এআই ইঞ্জিন'
             },
-            published: true
+            published: true,
+            createdAt: nowIso,
+            updatedAt: nowIso
           };
           promptsData.unshift(savedItem);
+          promptsData = sortPostsNewestFirst(promptsData);
         } else if (type === 'tech') {
           savedItem = {
             id: newId,
@@ -3611,9 +3923,12 @@ class NexoraApp {
             image: imageUrl,
             summary: excerpt || title,
             guideContent: formatAsHtml(content || excerpt),
-            published: true
+            published: true,
+            createdAt: nowIso,
+            updatedAt: nowIso
           };
           techData.unshift(savedItem);
+          techData = sortPostsNewestFirst(techData);
         } else if (type === 'books') {
           savedItem = {
             id: newId,
@@ -3633,15 +3948,18 @@ class NexoraApp {
                 text: content || excerpt || 'পাঠ্য টেক্সট উপলব্ধ রয়েছে।'
               }
             ],
-            published: true
+            published: true,
+            createdAt: nowIso,
+            updatedAt: nowIso
           };
           booksData.unshift(savedItem);
+          booksData = sortPostsNewestFirst(booksData);
         }
 
         if (this.isAdminAuthenticated() && savedItem) {
           await saveDocument(collectionName, newId, savedItem);
         }
-        this.showToast('নতুন পোস্ট সফলভাবে Cloud Firestore-এ তৈরি ও প্রকাশিত হয়েছে!', 'success');
+        this.showToast('নতুন পোস্ট সফলভাবে তৈরি হয়েছে এবং পেজের শীর্ষে যুক্ত হয়েছে!', 'success');
       }
     } catch (saveError) {
       console.error('Firestore save error:', saveError);
@@ -3656,7 +3974,7 @@ class NexoraApp {
       }
     }
 
-    // লোকাল স্টোরেজে সংরক্ষণ ও সাইট রেন্ডার
+    // লোকাল স্টোরেজে সংরক্ষণ ও সাইট রেন্ডার (সব পেজের শীর্ষে থাকা নিশ্চিত করা)
     saveStoredPosts();
     this.renderCurrentPageContent();
     this.updateAdminStats();
