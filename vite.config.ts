@@ -9,7 +9,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname ?? '.', '.'),
       },
     },
     server: {
@@ -25,11 +25,11 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         input: {
-          main: path.resolve(__dirname, 'index.html'),
-          news: path.resolve(__dirname, 'news.html'),
-          prompts: path.resolve(__dirname, 'prompts.html'),
-          technology: path.resolve(__dirname, 'technology.html'),
-          books: path.resolve(__dirname, 'books.html'),
+          main: path.resolve(import.meta.dirname ?? '.', 'index.html'),
+          news: path.resolve(import.meta.dirname ?? '.', 'news.html'),
+          prompts: path.resolve(import.meta.dirname ?? '.', 'prompts.html'),
+          technology: path.resolve(import.meta.dirname ?? '.', 'technology.html'),
+          books: path.resolve(import.meta.dirname ?? '.', 'books.html'),
         },
       },
     },

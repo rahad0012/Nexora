@@ -136,6 +136,14 @@
           </svg>
         </button>
 
+        <!-- Admin Panel Icon Button (Extreme Right) -->
+        <button type="button" class="icon-btn header-admin-btn" id="header-admin-trigger" onclick="window.nexoraApp.openAdminPanel()" aria-label="অ্যাডমিন প্যানেল" title="অ্যাডমিন প্যানেল">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+          </svg>
+        </button>
+
         <!-- Mobile Menu Toggle Button -->
         <button type="button" class="icon-btn mobile-menu-btn" id="mobile-menu-toggle" aria-label="মেনু খুলুন বা বন্ধ করুন" aria-expanded="false" aria-controls="mobile-nav">
           <svg class="menu-open-icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -175,356 +183,29 @@
 
   <!-- Main Content Area -->
   <main id="main-content">
-    <!-- Hero Section with Dynamic 3s Slider -->
-    <section class="hero-section" id="hero">
-      <div class="container">
-        <!-- ============================================== -->
-        <!-- HERO SLIDER CAROUSEL (Nexora 4-Category Showcase) -->
-        <!-- ============================================== -->
-        <div class="hero-slider-container" aria-label="Nexora Features Slider" tabindex="0">
-          <div class="hero-slider-track">
-            <!-- Slide 1: News -->
-            <div class="hero-slide active" data-index="0">
-              <img 
-                src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=85" 
-                alt="Nexora News - Global and tech updates background" 
-                class="hero-slide-bg"
-                loading="eager"
-              />
-              <div class="hero-slide-overlay"></div>
-              <div class="hero-slide-content">
-                <div class="hero-slide-text-group">
-                  <div class="hero-slide-badge cyan">
-                    <span class="badge-dot" aria-hidden="true">●</span>
-                    <span class="badge-cat">Nexora News</span>
-                    <span class="badge-sep" aria-hidden="true">·</span>
-                    <span>Trending & Global Updates</span>
-                  </div>
-                  <h2 class="hero-slide-title">
-                    Stay Informed. Stay Ahead.
-                  </h2>
-                  <p class="hero-slide-desc">
-                    Explore the latest news, trending stories, and important global updates.
-                  </p>
-                </div>
-                <div class="hero-slide-actions">
-                  <a href="news.html" class="btn btn-hero-explore">
-                    <span>Explore Latest News</span>
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </a>
-                  <a href="news.html" class="hero-category-quicklink">
-                    <span>Browse Stories</span>
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Slide 2: AI Prompts -->
-            <div class="hero-slide" data-index="1">
-              <img 
-                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=85" 
-                alt="Nexora AI Prompts - Generative intelligence background" 
-                class="hero-slide-bg"
-                loading="lazy"
-              />
-              <div class="hero-slide-overlay"></div>
-              <div class="hero-slide-content">
-                <div class="hero-slide-text-group">
-                  <div class="hero-slide-badge purple">
-                    <span class="badge-dot" aria-hidden="true">●</span>
-                    <span class="badge-cat">Nexora AI Prompts</span>
-                    <span class="badge-sep" aria-hidden="true">·</span>
-                    <span>Creativity & Productivity</span>
-                  </div>
-                  <h2 class="hero-slide-title">
-                    Unlock the Power of AI.
-                  </h2>
-                  <p class="hero-slide-desc">
-                    Discover powerful AI prompts for creativity, productivity, and innovation.
-                  </p>
-                </div>
-                <div class="hero-slide-actions">
-                  <a href="prompts.html" class="btn btn-hero-explore btn-hero-purple">
-                    <span>Explore AI Prompts</span>
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </a>
-                  <a href="prompts.html" class="hero-category-quicklink">
-                    <span>Prompt Library</span>
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Slide 3: Technology -->
-            <div class="hero-slide" data-index="2">
-              <img 
-                src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1600&q=85" 
-                alt="Nexora Technology - Future digital frontiers background" 
-                class="hero-slide-bg"
-                loading="lazy"
-              />
-              <div class="hero-slide-overlay"></div>
-              <div class="hero-slide-content">
-                <div class="hero-slide-text-group">
-                  <div class="hero-slide-badge blue">
-                    <span class="badge-dot" aria-hidden="true">●</span>
-                    <span class="badge-cat">Nexora Technology</span>
-                    <span class="badge-sep" aria-hidden="true">·</span>
-                    <span>Innovations & Tools</span>
-                  </div>
-                  <h2 class="hero-slide-title">
-                    Explore the Future of Technology.
-                  </h2>
-                  <p class="hero-slide-desc">
-                    Discover emerging technologies, AI innovations, and useful digital tools.
-                  </p>
-                </div>
-                <div class="hero-slide-actions">
-                  <a href="technology.html" class="btn btn-hero-explore btn-hero-blue">
-                    <span>Discover Technology</span>
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </a>
-                  <a href="technology.html" class="hero-category-quicklink">
-                    <span>Tech Guides</span>
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Slide 4: Free Books -->
-            <div class="hero-slide" data-index="3">
-              <img 
-                src="https://images.unsplash.com/photo-1507842229452-7b2756858548?auto=format&fit=crop&w=1600&q=85" 
-                alt="Nexora Free Books - Timeless library background" 
-                class="hero-slide-bg"
-                loading="lazy"
-              />
-              <div class="hero-slide-overlay"></div>
-              <div class="hero-slide-content">
-                <div class="hero-slide-text-group">
-                  <div class="hero-slide-badge emerald">
-                    <span class="badge-dot" aria-hidden="true">●</span>
-                    <span class="badge-cat">Nexora Free Books</span>
-                    <span class="badge-sep" aria-hidden="true">·</span>
-                    <span>Timeless Knowledge</span>
-                  </div>
-                  <h2 class="hero-slide-title">
-                    Knowledge Should Be Free.
-                  </h2>
-                  <p class="hero-slide-desc">
-                    Explore fascinating books, timeless classics, and free reading resources.
-                  </p>
-                </div>
-                <div class="hero-slide-actions">
-                  <a href="books.html" class="btn btn-hero-explore btn-hero-emerald">
-                    <span>Explore Free Books</span>
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </a>
-                  <a href="books.html" class="hero-category-quicklink">
-                    <span>Open Library</span>
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Slider Controls -->
-          <button type="button" class="hero-slider-btn prev" id="hero-prev-btn" aria-label="Previous Slide">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          </button>
-          <button type="button" class="hero-slider-btn next" id="hero-next-btn" aria-label="Next Slide">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
-
-          <!-- 4 Slider Indicators -->
-          <div class="hero-slider-dots" role="tablist" aria-label="Hero slider slide selection">
-            <button type="button" class="hero-dot active" data-slide="0" aria-label="Slide 1: News" role="tab" aria-selected="true"></button>
-            <button type="button" class="hero-dot" data-slide="1" aria-label="Slide 2: AI Prompts" role="tab" aria-selected="false"></button>
-            <button type="button" class="hero-dot" data-slide="2" aria-label="Slide 3: Technology" role="tab" aria-selected="false"></button>
-            <button type="button" class="hero-dot" data-slide="3" aria-label="Slide 4: Free Books" role="tab" aria-selected="false"></button>
-          </div>
-
-          <!-- Auto-slide 5.5s Progress Bar -->
-          <div class="hero-slider-progress" aria-hidden="true">
-            <div class="hero-slider-progress-bar" id="hero-progress-bar"></div>
-          </div>
-        </div>
-
-        <!-- Central Search & Discovery Bar -->
-        <div class="hero-search-wrapper" id="global-search-container">
-          <form class="search-form" id="global-search-form" role="search">
-            <div class="search-input-group">
-              <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input 
-                type="search" 
-                id="global-search-input" 
-                class="search-input" 
-                placeholder="সংবাদ, এআই প্রম্পট, টেক গাইড কিংবা ফ্রি বই খুঁজুন..." 
-                autocomplete="off"
-                aria-label="Nexora কন্টেন্ট অনুসন্ধান"
-              />
-              <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="মুছে ফেলুন" style="display: none;">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-              <button type="submit" id="search-submit-btn" class="search-submit-btn" aria-label="অনুসন্ধান করুন">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <span>খুঁজুন</span>
-              </button>
-            </div>
-
-            <!-- Content Scope Filter Buttons -->
-            <div class="search-scope-tabs" role="tablist" aria-label="কন্টেন্টের ধরন অনুযায়ী ফিল্টার">
-              <button type="button" class="scope-tab active" data-scope="all" role="tab" aria-selected="true">সবকিছু</button>
-              <button type="button" class="scope-tab" data-scope="news" role="tab" aria-selected="false">সংবাদ</button>
-              <button type="button" class="scope-tab" data-scope="prompts" role="tab" aria-selected="false">এআই প্রম্পটস</button>
-              <button type="button" class="scope-tab" data-scope="tech" role="tab" aria-selected="false">প্রযুক্তি</button>
-              <button type="button" class="scope-tab" data-scope="books" role="tab" aria-selected="false">ফ্রি বই</button>
-            </div>
-          </form>
-
-          <!-- Live Search Results Dropdown -->
-          <div class="search-results-panel" id="search-results-panel" aria-live="polite" style="display: none;">
-            <div class="results-header">
-              <span class="results-count-text" id="search-results-count">০টি ফলাফল</span>
-              <button type="button" class="results-close-btn" id="close-search-panel">বন্ধ করুন</button>
-            </div>
-            <div class="results-list" id="search-results-list"></div>
-          </div>
-        </div>
-
-        <!-- Trending Topics Micro-Bar -->
-        <div class="hero-trending-bar">
-          <span class="trending-title">জনপ্রিয় বিষয়:</span>
-          <div class="trending-tags">
-            <button type="button" class="trending-link" data-search-term="কৃত্রিম বুদ্ধিমত্তা">কৃত্রিম বুদ্ধিমত্তা</button>
-            <button type="button" class="trending-link" data-search-term="ফ্লাক্স">Flux.1 প্রম্পট</button>
-            <button type="button" class="trending-link" data-search-term="ফ্রাঙ্কেনস্টাইন">ফ্রাঙ্কেনস্টাইন</button>
-            <button type="button" class="trending-link" data-search-term="লোকাল-ফার্স্ট">লোকাল-ফার্স্ট ওয়েব</button>
-            <button type="button" class="trending-link" data-search-term="পাইথন">পাইথন প্রোগ্রামিং</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 1: Latest News Highlight -->
-    <section class="section news-section" id="news">
+    <!-- Unified Latest Section (সর্বশেষ ১২টি পোস্ট) -->
+    <section class="section latest-section" id="latest">
       <div class="container">
         <div class="section-header">
           <div>
-            <span class="section-kicker">তাজা খবর ও অগ্রগতি</span>
-            <h2 class="section-title">সর্বশেষ সংবাদ</h2>
+            <span class="section-kicker">তাজা আপডেট ও সংকলন</span>
+            <h2 class="section-title">সর্বশেষ</h2>
           </div>
           <div class="section-meta-text">
-            প্রযুক্তি ও বৈজ্ঞানিক অগ্রগতির সবচেয়ে গুরুত্বপূর্ণ আপডেট।
+            নেক্সোরার সংবাদ, এআই প্রম্পটস, প্রযুক্তি গাইড ও বইয়ের সর্বশেষ সংকলন। নতুন যেকোনো পোস্ট প্রকাশের সাথে সাথে তা সরাসরি শীর্ষে দেখতে পাবেন।
           </div>
         </div>
 
-        <div class="cards-grid news-grid" id="news-grid">
-          <!-- Dynamically populated via script.js -->
+        <div class="cards-grid latest-grid" id="latest-grid">
+          <!-- Dynamically populated via script.js (সর্বশেষ ১২টি পোস্ট) -->
         </div>
 
-        <a href="news.html" class="section-more-link">
-          সবগুলো সংবাদ বিস্তারিত দেখুন (Dedicated News Page) →
-        </a>
-      </div>
-    </section>
-
-    <!-- Section 2: Popular AI Prompts Highlight -->
-    <section class="section prompts-section" id="prompts">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <span class="section-kicker">ক্রিয়েটিভ প্রম্পট ইঞ্জিনিয়ারিং</span>
-            <h2 class="section-title">জনপ্রিয় এআই প্রম্পটস</h2>
-          </div>
-          <div class="section-meta-text">
-            ChatGPT, Midjourney, Claude ও AI Video-র জন্য এক ক্লিকে কপি করার মতো তৈরি প্রম্পট।
-          </div>
+        <div class="latest-category-links" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
+          <a href="news.html" class="btn btn-secondary btn-sm">সব সংবাদ দেখুন →</a>
+          <a href="prompts.html" class="btn btn-secondary btn-sm">সব এআই প্রম্পট →</a>
+          <a href="technology.html" class="btn btn-secondary btn-sm">সব প্রযুক্তি গাইড →</a>
+          <a href="books.html" class="btn btn-secondary btn-sm">সব ফ্রি বই →</a>
         </div>
-
-        <div class="cards-grid prompts-grid" id="prompts-grid">
-          <!-- Dynamically populated via script.js -->
-        </div>
-
-        <a href="prompts.html" class="section-more-link">
-          সম্পূর্ণ প্রম্পট লাইব্রেরি ঘুরে দেখুন (Dedicated Prompts Page) →
-        </a>
-      </div>
-    </section>
-
-    <!-- Section 3: Technology Insights Highlight -->
-    <section class="section tech-section" id="technology">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <span class="section-kicker">প্রকৌশল ও ডিজিটাল দিগন্ত</span>
-            <h2 class="section-title">প্রযুক্তি অন্তর্দৃষ্টি</h2>
-          </div>
-          <div class="section-meta-text">
-            গভীর ডেভেলপার গাইড, সফটওয়্যার টিপস এবং দরকারি আধুনিক টেকনোলজি টুলস।
-          </div>
-        </div>
-
-        <div class="cards-grid tech-grid" id="tech-grid">
-          <!-- Dynamically populated via script.js -->
-        </div>
-
-        <a href="technology.html" class="section-more-link">
-          সবগুলো প্রযুক্তি গাইড ও টিউটোরিয়াল দেখুন (Dedicated Tech Page) →
-        </a>
-      </div>
-    </section>
-
-    <!-- Section 4: Free Books Highlight -->
-    <section class="section books-section" id="books">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <span class="section-kicker">উন্মুক্ত জ্ঞান ও ক্লাসিক সাহিত্য</span>
-            <h2 class="section-title">ফ্রি বই লাইব্রেরি</h2>
-          </div>
-          <div class="section-meta-text">
-            আইনগতভাবে মুক্ত ও পাবলিক ডোমেন সাহিত্য। সরাসরি ব্রাউজারে পড়ুন অথবা মূল সংগ্রহশালা থেকে সংগ্রহ করুন।
-          </div>
-        </div>
-
-        <div class="cards-grid books-grid" id="books-grid">
-          <!-- Dynamically populated via script.js -->
-        </div>
-
-        <a href="books.html" class="section-more-link">
-          ফ্রি বইয়ের সম্পূর্ণ ক্যাটালগ দেখুন (Dedicated Books Page) →
-        </a>
       </div>
     </section>
 
@@ -671,12 +352,11 @@
         &copy; ২০২৬ Nexora. All rights reserved. "Discover What's Next."
       </div>
       <div class="footer-admin-bar">
-        <button type="button" class="btn-footer-admin" onclick="window.nexoraApp.openAdminPanel()" aria-label="অ্যাডমিন প্যানেল খুলুন">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+        <button type="button" class="btn-footer-admin" onclick="window.nexoraApp.openAdminPanel()" aria-label="অ্যাডমিন প্যানেল" title="অ্যাডমিন প্যানেল">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
           </svg>
-          <span>অ্যাডমিন প্যানেল (Admin Panel)</span>
         </button>
       </div>
       <div class="footer-extra">
@@ -1209,19 +889,20 @@
                 </div>
                 <div class="form-group">
                   <label for="post-field-book-pdf" class="form-label">
-                    <span class="badge-pdf-tag">PDF</span> সম্পূর্ণ পিডিএফ লিংক (PDF Read/Download URL)
+                    <span class="badge-pdf-tag">PDF</span> সম্পূর্ণ পিডিএফ বা গুগল ড্রাইভ লিংক (Google Drive / Direct PDF URL)
                   </label>
                   <div style="display: flex; gap: 8px;">
-                    <input type="url" id="post-field-book-pdf" class="form-input" placeholder="https://... সরাসরি পিডিএফ ফাইলের লিংক" />
+                    <input type="url" id="post-field-book-pdf" class="form-input" placeholder="Google Drive লিংক বা সরাসরি PDF ফাইলের URL (https://drive.google.com/...)" />
                     <button type="button" class="btn btn-ghost btn-sm btn-admin" style="white-space: nowrap;" onclick="window.nexoraApp.testBookPdfLink()" title="পিডিএফ লিংক টেস্ট করুন">
                       টেস্ট
                     </button>
                   </div>
                   <div class="field-hint" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                    <span>পাঠকরা সরাসরি পিডিএফ ডাউনলোড বা পড়ার বোতাম পাবেন।</span>
+                    <span>গুগল ড্রাইভ লিংক দিলে পাঠকরা পোস্ট ওপেন করে সরাসরি পিডিএফ ডাউনলোড করতে পারবেন।</span>
                     <div style="display: flex; gap: 4px;">
                       <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://archive.org/download/frankensteinor00shel/frankensteinor00shel.pdf')">নমুনা ১</button>
                       <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://greenteapress.com/thinkpython2/thinkpython2.pdf')">নমুনা ২</button>
+                      <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing')">নমুনা ৩ (Drive)</button>
                     </div>
                   </div>
                 </div>

@@ -533,6 +533,58 @@ export function getUserPostTimestamp(item) {
 }
 
 /**
+ * Extract Google Drive file ID from any sharing, view, download or preview URL
+ */
+export function extractGoogleDriveId(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+
+  // 1. Google Drive file URL: /file/d/{id}, /file/u/0/d/{id}, /d/{id}
+  const fileMatch = trimmed.match(/(?:\/file(?:\/u\/\d+)?\/d\/|\/d\/)([a-zA-Z0-9_-]{15,})/i);
+  if (fileMatch && fileMatch[1]) return fileMatch[1];
+
+  // 2. Query parameter: ?id={id} or &id={id} (e.g. uc?id=... or open?id=...)
+  const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]{15,})/i);
+  if (idMatch && idMatch[1]) return idMatch[1];
+
+  // 3. Google Docs / Spreadsheets / Presentations: /d/{id}
+  const docMatch = trimmed.match(/docs\.google\.com\/(?:document|presentation|spreadsheets)\/d\/([a-zA-Z0-9_-]{15,})/i);
+  if (docMatch && docMatch[1]) return docMatch[1];
+
+  return null;
+}
+
+/**
+ * Convert Google Drive (and other cloud storages) to a direct PDF download link
+ */
+export function getDirectPdfDownloadUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const url = rawUrl.trim();
+
+  const driveId = extractGoogleDriveId(url);
+  if (driveId) {
+    if (url.includes('docs.google.com/document')) {
+      return `https://docs.google.com/document/d/${driveId}/export?format=pdf`;
+    }
+    if (url.includes('docs.google.com/presentation')) {
+      return `https://docs.google.com/presentation/d/${driveId}/export/pdf`;
+    }
+    if (url.includes('docs.google.com/spreadsheets')) {
+      return `https://docs.google.com/spreadsheets/d/${driveId}/export?format=pdf`;
+    }
+    // Universal Google Drive direct file download URL
+    return `https://drive.google.com/uc?export=download&id=${driveId}`;
+  }
+
+  // Dropbox direct download support
+  if (url.includes('dropbox.com') && url.includes('dl=0')) {
+    return url.replace('dl=0', 'dl=1');
+  }
+
+  return url;
+}
+
+/**
  * Sorts array of posts so new user posts are ALWAYS at the top (newest first),
  * followed by default seed posts in natural order (1, 2, 3...)
  */
@@ -904,12 +956,10 @@ class NexoraApp {
     techData = sortPostsNewestFirst(techData);
     booksData = sortPostsNewestFirst(booksData);
 
-    // হোমপেজ হলে সবগুলো গ্রিড রেন্ডার হবে (টপ আইটেমগুলো প্রথমে)
+    // হোমপেজ হলে একীভূত "সর্বশেষ" ১২টি পোস্ট শীর্ষে রেন্ডার হবে (নতুন যেকোনো পোস্ট সবার প্রথমে)
     if (this.page === 'home') {
-      this.renderNews(newsData.slice(0, 3));
-      this.renderPrompts(promptsData.slice(0, 4));
-      this.renderTech(techData.slice(0, 3));
-      this.renderBooks(booksData.slice(0, 4));
+      const latestItems = this.getAllLatestPosts().slice(0, 12);
+      this.renderLatest(latestItems);
     } else if (this.page === 'news') {
       this.renderNews(newsData);
     } else if (this.page === 'prompts') {
@@ -1041,6 +1091,214 @@ class NexoraApp {
   // ------------------------------------------------------------------------
   // রেন্ডারিং ফাংশনসমূহ (Render Functions)
   // ------------------------------------------------------------------------
+  getAllLatestPosts() {
+    // সব ক্যাটাগরির পোস্ট একত্রিতকরণ ও চিহ্নিতকরণ
+    const all = [
+      ...newsData.map(item => ({ ...item, postType: 'news' })),
+      ...promptsData.map(item => ({ ...item, postType: 'prompts' })),
+      ...techData.map(item => ({ ...item, postType: 'tech' })),
+      ...booksData.map(item => ({ ...item, postType: 'books' }))
+    ];
+
+    // সাজানো: নতুন যেকোনো পোস্ট সর্বদা সবার শীর্ষে (টপে) থাকবে, তারপর অন্যান্য পোস্ট
+    return all.sort((a, b) => {
+      const aDef = isDefaultPost(a);
+      const bDef = isDefaultPost(b);
+
+      // ১. ব্যবহারকারীর তৈরি নতুন পোস্ট সর্বদা ডিফল্ট পোস্টের আগে শীর্ষে আসবে
+      if (!aDef && bDef) return -1;
+      if (aDef && !bDef) return 1;
+
+      // ২. দুটিই নতুন পোস্ট হলে: সর্বশেষ টাইমস্ট্যাম্প প্রথমে
+      if (!aDef && !bDef) {
+        const tA = getUserPostTimestamp(a);
+        const tB = getUserPostTimestamp(b);
+        if (tB !== tA) return tB - tA;
+        return String(b.id || '').localeCompare(String(a.id || ''));
+      }
+
+      // ৩. দুটিই ডিফল্ট পোস্ট হলে: ক্রমানুসারে মিশ্রিত রাখা
+      const aNum = parseInt(String(a.id).replace(/\D+/g, '') || '0', 10);
+      const bNum = parseInt(String(b.id).replace(/\D+/g, '') || '0', 10);
+      if (aNum !== bNum) return aNum - bNum;
+
+      const typePriority = { news: 1, prompts: 2, tech: 3, books: 4 };
+      const pA = typePriority[a.postType] || 5;
+      const pB = typePriority[b.postType] || 5;
+      if (pA !== pB) return pA - pB;
+
+      return String(a.id).localeCompare(String(b.id));
+    });
+  }
+
+  renderLatest(items) {
+    const grid = document.getElementById('latest-grid');
+    if (!grid) return;
+
+    if (!items || items.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-results" style="grid-column: 1 / -1;">
+          <p>কোনো পোস্ট পাওয়া যায়নি।</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = items.map(item => this.renderPostCard(item)).join('');
+  }
+
+  renderPostCard(item) {
+    if (item.postType === 'prompts') {
+      return `
+        <div class="prompt-card" data-id="${item.id}">
+          <div class="prompt-card-top">
+            <div class="card-meta">
+              <span class="meta-tag purple">এআই প্রম্পট</span>
+              <span class="meta-dot">·</span>
+              <span class="meta-tag purple">${item.category || 'প্রম্পট'}</span>
+              <span class="meta-dot">·</span>
+              <span>${item.tool || 'ChatGPT / Claude'}</span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${item.id}', 'prompt')" aria-label="বুকমার্ক করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(item.id) ? 'currentColor' : 'none'}">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
+          </div>
+          <h3 class="prompt-card-title">${item.title}</h3>
+          <p class="prompt-card-desc">${item.desc || item.excerpt || ''}</p>
+          <div class="prompt-box" title="সম্পূর্ণ প্রম্পট দেখতে ক্লিক করুন">
+            ${item.promptText || item.desc || ''}
+          </div>
+          <div class="prompt-card-actions">
+            <div class="prompt-actions-left">
+              <button type="button" class="btn-copy-prompt" onclick="window.nexoraApp.copyPromptText('${item.id}', this)" title="প্রম্পট টেক্সট কপি করুন" aria-label="কপি">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>কপি</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${item.id}', 'prompt', this)" title="প্রম্পটের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+              </button>
+            </div>
+            <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openPromptModal('${item.id}')" aria-label="আরও পড়ুন">
+              <span>আরও পড়ুন</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (item.postType === 'books') {
+      return `
+        <div class="book-card" data-id="${item.id}">
+          <div class="book-cover-wrap">
+            <img src="${item.cover || item.image || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'}" alt="${item.title}" class="book-cover-img" loading="lazy" />
+          </div>
+          <div class="book-card-info">
+            <div class="card-meta">
+              <span class="meta-tag purple">ফ্রি বই</span>
+              <span class="meta-dot">·</span>
+              <span class="meta-tag purple">${item.category || 'সাহিত্য'}</span>
+              <span class="meta-dot">·</span>
+              <span>${item.license || 'পাবলিক ডোমেন'}</span>
+            </div>
+            <h3 class="book-title">${item.title}</h3>
+            <div class="book-author">${item.author || 'লেখক'} (${item.year || '২০২৬'})</div>
+            <p class="book-desc">${item.desc || item.excerpt || ''}</p>
+          </div>
+          <div class="book-card-footer">
+            <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openBookReader('${item.id}')" style="flex: 1;">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              <span>আরও পড়ুন</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${item.id}', 'book', this)" title="বইয়ের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${item.id}', 'book')" aria-label="বুকমার্ক করুন">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(item.id) ? 'currentColor' : 'none'}">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (item.postType === 'tech') {
+      return `
+        <article class="tech-card" data-id="${item.id}">
+          <div class="tech-card-header-img">
+            <img src="${item.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80'}" alt="${item.title}" loading="lazy" />
+          </div>
+          <div class="tech-card-body">
+            <div class="card-meta">
+              <span class="meta-tag cyan">প্রযুক্তি</span>
+              <span class="meta-dot">·</span>
+              <span class="meta-tag cyan">${item.category || 'প্রযুক্তি'}</span>
+              <span class="meta-dot">·</span>
+              <span>${item.readTime || '৫ মিনিট পাঠ'}</span>
+            </div>
+            <h3 class="tech-card-title">${item.title}</h3>
+            <p class="tech-card-summary">${item.summary || item.excerpt || ''}</p>
+            <div class="tech-card-footer">
+              <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openTechReader('${item.id}')">
+                <span>আরও পড়ুন</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${item.id}', 'tech', this)" title="গাইডের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${item.id}', 'tech')" aria-label="বুকমার্ক করুন">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(item.id) ? 'currentColor' : 'none'}">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    // Default: News
+    return `
+      <article class="news-card" data-id="${item.id}">
+        <div class="news-card-img-wrap">
+          <img src="${item.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}" alt="${item.title}" class="news-card-img" loading="lazy" />
+        </div>
+        <div class="news-card-body">
+          <div class="card-meta">
+            <span class="meta-tag cyan">সংবাদ</span>
+            <span class="meta-dot">·</span>
+            <span class="meta-tag cyan">${item.category || 'সংবাদ'}</span>
+            <span class="meta-dot">·</span>
+            <span>${item.date || '২০২৬'}</span>
+            <span class="meta-dot">·</span>
+            <span>${item.readTime || '৫ মিনিট পাঠ'}</span>
+          </div>
+          <h3 class="news-card-title">${item.title}</h3>
+          <p class="news-card-excerpt">${item.excerpt || ''}</p>
+          <div class="news-card-footer">
+            <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openArticleReader('${item.id}')">
+              <span>আরও পড়ুন</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${item.id}', 'article', this)" title="পোস্টের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${item.id}', 'article')" aria-label="বুকমার্ক করুন">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(item.id) ? 'currentColor' : 'none'}">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
   renderNews(items) {
     const grid = document.getElementById('news-grid');
     if (!grid) return;
@@ -1224,15 +1482,6 @@ class NexoraApp {
           <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.shareOrCopyPost('${book.id}', 'book', this)" title="বইয়ের সরাসরি লিংক কপি / শেয়ার করুন" aria-label="শেয়ার করুন">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
           </button>
-          ${book.pdfUrl ? `
-            <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-pdf" title="সরাসরি সম্পূর্ণ পিডিএফ পড়ুন বা ডাউনলোড করুন" aria-label="পিডিএফ">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
-              <span>PDF</span>
-            </a>
-          ` : ''}
-          <a href="${book.gutenbergUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" title="গুটেনবার্গ উন্মুক্ত লিংক" aria-label="গুটেনবার্গ ওপেন লিংক">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </a>
           <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${book.id}', 'book')" aria-label="বুকমার্ক করুন">
             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(book.id) ? 'currentColor' : 'none'}">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -1695,15 +1944,11 @@ class NexoraApp {
           <span>লিংক শেয়ার</span>
         </button>
         ${book.pdfUrl ? `
-          <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-pdf-primary btn-sm">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
-            <span>সম্পূর্ণ পিডিএফ পড়ুন / ডাউনলোড (PDF)</span>
-          </a>
+          <button type="button" class="btn btn-pdf-primary btn-sm btn-pdf-download" onclick="window.nexoraApp.downloadBookPdf('${book.id}')" title="গুগল ড্রাইভ থেকে সম্পূর্ণ পিডিএফ ফাইল ডাউনলোড করুন">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>পিডিএফ ডাউনলোড করুন</span>
+          </button>
         ` : ''}
-        <a href="${book.gutenbergUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-          প্রজেক্ট গুটেনবার্গে সম্পূর্ণ মূল বই
-        </a>
       `;
     }
 
@@ -1728,20 +1973,20 @@ class NexoraApp {
               <strong>পুস্তক ভূমিকা:</strong> ${book.desc}
             </div>
             ${book.pdfUrl ? `
-              <div class="reader-pdf-banner" style="margin: 18px 0 8px;">
+              <div class="reader-pdf-banner" style="margin: 18px 0 14px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <div class="pdf-banner-icon" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
                   </div>
                   <div>
-                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.9375rem;">এই বইটির সম্পূর্ণ পিডিএফ কপি সংযুক্ত রয়েছে</div>
-                    <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px;">সরাসরি ব্রাউজারে পড়ুন অথবা অফলাইনে পড়ার জন্য ডাউনলোড করুন।</div>
+                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.9375rem;">এই বইটির সম্পূর্ণ পিডিএফ ফাইল সংযুক্ত রয়েছে</div>
+                    <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px;">গুগল ড্রাইভ লিংক থেকে সরাসরি সম্পূর্ণ মূল বই ডাউনলোড করুন।</div>
                   </div>
                 </div>
-                <a href="${book.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-pdf-primary btn-sm" style="white-space: nowrap;">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 1-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="18"></line><line x1="15" y1="15" x2="12" y2="18"></line></svg>
-                  পিডিএফ খুলুন
-                </a>
+                <button type="button" class="btn btn-pdf-primary btn-sm btn-pdf-download" onclick="window.nexoraApp.downloadBookPdf('${book.id}')" style="white-space: nowrap;">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>পিডিএফ ডাউনলোড করুন</span>
+                </button>
               </div>
             ` : ''}
           </div>
@@ -1757,7 +2002,7 @@ class NexoraApp {
                 `).join('')}
                 <div class="sample-notice-banner" style="margin-top: 20px;">
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span>আপনি নেক্সোরার পাবলিক ডোমেন রিডার থেকে নির্বাচিত সূচনা অধ্যায় পড়ছেন। সম্পূর্ণ মূল বই বিনামূল্যে ডাউনলোড বা পড়ার জন্য নিচের অফিশিয়াল লিংকে যান।</span>
+                  <span>আপনি নেক্সোরার ফ্রি বুক রিডার থেকে নির্বাচিত সূচনা অধ্যায় পড়ছেন। সম্পূর্ণ বইটির পিডিএফ কপি পেতে "পিডিএফ ডাউনলোড করুন" বাটনে ক্লিক করুন।</span>
                 </div>
               </div>
               <div class="reader-fade-overlay" id="book-fade-overlay"></div>
@@ -1774,6 +2019,36 @@ class NexoraApp {
     }
 
     this.openModal('book-modal');
+  }
+
+  downloadBookPdf(id) {
+    const book = booksData.find(b => String(b.id) === String(id));
+    if (!book || !book.pdfUrl) {
+      this.showToast('এই বইটির জন্য কোনো পিডিএফ ফাইল পাওয়া যায়নি।', 'warning');
+      return;
+    }
+
+    const rawUrl = String(book.pdfUrl).trim();
+    const directUrl = getDirectPdfDownloadUrl(rawUrl);
+
+    this.showToast('গুগল ড্রাইভ থেকে পিডিএফ ডাউনলোড হচ্ছে...', 'success');
+
+    try {
+      // Trigger download via anchor element with target _blank
+      const link = document.createElement('a');
+      link.href = directUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      const cleanFileName = (book.title || 'book').replace(/[^\w\u0980-\u09FF-]+/g, '_');
+      link.setAttribute('download', `${cleanFileName}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try { link.remove(); } catch (e) {}
+      }, 1000);
+    } catch (err) {
+      window.open(directUrl, '_blank', 'noopener,noreferrer');
+    }
   }
 
   toggleBookReadMore(btn) {
@@ -2054,17 +2329,14 @@ class NexoraApp {
 
   toggleBookmarkById(id, type) {
     let item = null;
-    if (type === 'article') item = newsData.find(n => n.id === id);
-    if (type === 'prompt') item = promptsData.find(p => p.id === id);
-    if (type === 'tech') item = techData.find(t => t.id === id);
-    if (type === 'book') item = booksData.find(b => b.id === id);
+    if (type === 'article' || type === 'news') item = newsData.find(n => n.id === id);
+    if (type === 'prompt' || type === 'prompts') item = promptsData.find(p => p.id === id);
+    if (type === 'tech' || type === 'technology') item = techData.find(t => t.id === id);
+    if (type === 'book' || type === 'books') item = booksData.find(b => b.id === id);
 
     if (item) {
-      this.toggleBookmark(item, type);
-      if (type === 'article') this.renderNews(newsData);
-      if (type === 'prompt') this.renderPrompts(promptsData);
-      if (type === 'tech') this.renderTech(techData);
-      if (type === 'book') this.renderBooks(booksData);
+      this.toggleBookmark(item, type === 'news' ? 'article' : type === 'prompts' ? 'prompt' : type);
+      this.renderCurrentPageContent();
     }
   }
 
@@ -2966,19 +3238,20 @@ class NexoraApp {
                     </div>
                     <div class="form-group">
                       <label for="post-field-book-pdf" class="form-label">
-                        <span class="badge-pdf-tag">PDF</span> সম্পূর্ণ পিডিএফ লিংক (PDF Read/Download URL)
+                        <span class="badge-pdf-tag">PDF</span> সম্পূর্ণ পিডিএফ বা গুগল ড্রাইভ লিংক (Google Drive / Direct PDF URL)
                       </label>
                       <div style="display: flex; gap: 8px;">
-                        <input type="url" id="post-field-book-pdf" class="form-input" placeholder="https://... সরাসরি পিডিএফ ফাইলের লিংক" />
+                        <input type="url" id="post-field-book-pdf" class="form-input" placeholder="Google Drive লিংক বা সরাসরি PDF ফাইলের URL (https://drive.google.com/...)" />
                         <button type="button" class="btn btn-ghost btn-sm btn-admin" style="white-space: nowrap;" onclick="window.nexoraApp.testBookPdfLink()" title="পিডিএফ লিংক টেস্ট করুন">
                           টেস্ট
                         </button>
                       </div>
                       <div class="field-hint" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                        <span>পাঠকরা সরাসরি পিডিএফ ডাউনলোড বা পড়ার বোতাম পাবেন।</span>
+                        <span>গুগল ড্রাইভ লিংক দিলে পাঠকরা পোস্ট ওপেন করে সরাসরি পিডিএফ ডাউনলোড করতে পারবেন।</span>
                         <div style="display: flex; gap: 4px;">
                           <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://archive.org/download/frankensteinor00shel/frankensteinor00shel.pdf')">নমুনা ১</button>
                           <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://greenteapress.com/thinkpython2/thinkpython2.pdf')">নমুনা ২</button>
+                          <button type="button" class="btn-preset-img btn-admin" style="font-size: 0.6875rem; padding: 2px 7px;" onclick="window.nexoraApp.setPresetPdf('https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing')">নমুনা ৩ (Drive)</button>
                         </div>
                       </div>
                     </div>
@@ -3694,7 +3967,8 @@ class NexoraApp {
       this.showToast('অনুগ্রহ করে প্রথমে একটি পিডিএফ লিংক দিন!', 'warning');
       return;
     }
-    window.open(url, '_blank');
+    const directUrl = getDirectPdfDownloadUrl(url);
+    window.open(directUrl, '_blank', 'noopener,noreferrer');
   }
 
   resetAdminForm() {
@@ -4105,9 +4379,14 @@ class NexoraApp {
       if (e.target.closest('.modal-close-btn') || e.target.closest('.theme-toggle-btn') || e.target.closest('.mobile-menu-btn')) return;
       if (e.target.closest('#bookmarks-trigger') || e.target.closest('#mobile-bookmarks-trigger') || e.target.closest('#search-trigger')) return;
 
-      // 2. Identify monetized buttons (Read More, Copy Prompt, PDF Download, Explore, etc.)
+      // 2. Guard against PDF download buttons so files download cleanly without popup interference
+      if (e.target.closest('.btn-pdf-primary, .btn-pdf-download, [onclick*="downloadBookPdf"], .btn-download-pdf')) {
+        return;
+      }
+
+      // 3. Identify monetized buttons (Read More, Copy Prompt, Explore, etc.)
       const monetizedBtn = e.target.closest(
-        '.btn-card-readmore, .btn-read-more, .btn-copy-prompt, .btn-card-pdf, .btn-pdf-primary, .btn-unlock-confirm, .ad-card-banner, .btn-hero-explore, .hero-category-quicklink, [data-smartlink="true"]'
+        '.btn-card-readmore, .btn-read-more, .btn-copy-prompt, .btn-unlock-confirm, .ad-card-banner, .btn-hero-explore, .hero-category-quicklink, [data-smartlink="true"]'
       );
 
       if (monetizedBtn) {
