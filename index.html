@@ -703,6 +703,10 @@
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
           <span id="admin-form-tab-label">নতুন পোস্ট তৈরি করুন</span>
         </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-analytics" onclick="window.nexoraApp.switchAdminTab('analytics')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>📊 সাইট অ্যানালিটিক্স</span>
+        </button>
       </div>
 
       <div class="modal-body admin-modal-body">
@@ -942,6 +946,13 @@
               </button>
             </div>
           </form>
+        </div>
+
+        <!-- VIEW 3: Site Analytics & Visitor Tracking View -->
+        <div class="admin-tab-pane" id="admin-pane-analytics">
+          <div class="admin-analytics-dashboard" id="admin-analytics-container">
+            <!-- Dynamically populated via renderAnalyticsDashboard() -->
+          </div>
         </div>
       </div>
 

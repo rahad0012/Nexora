@@ -11,7 +11,12 @@ import {
   saveDocument, 
   deleteDocument,
   isUserAdmin,
-  testConnection
+  testConnection,
+  recordSitePageView,
+  recordPostView,
+  fetchAnalyticsOverview,
+  toBengaliNumber,
+  formatBengaliDateLabel
 } from './firebase-config.js';
 
 // ==========================================================================
@@ -691,6 +696,14 @@ class NexoraApp {
     this.unlockedPostIds = new Set();
     this.pendingUnlockTarget = null;
 
+    // সাইট অ্যানালিটিক্স স্টেট (Site Analytics & Visitor Tracking State)
+    this.analyticsPeriod = 7;
+    this.analyticsPostFilter = 'all';
+    this.analyticsPostSearch = '';
+    this.analyticsPostSort = 'views-desc';
+    this.analyticsDataCache = null;
+    this.analyticsLoading = false;
+
     // বর্তমান পেজ শনাক্তকরণ
     this.page = this.detectCurrentPage();
 
@@ -719,6 +732,7 @@ class NexoraApp {
     this.setupFirebaseAuthListener();
     this.checkAndOpenPostFromUrl();
     this.fetchFirestoreData();
+    recordSitePageView();
   }
 
   setupFirebaseAuthListener() {
@@ -1693,6 +1707,7 @@ class NexoraApp {
   openArticleReader(id) {
     const article = newsData.find(a => String(a.id) === String(id));
     if (!article) return;
+    recordPostView(article.id);
 
     this.ensureReaderModalInDOM();
     this.currentReaderItem = article;
@@ -1758,6 +1773,7 @@ class NexoraApp {
   openTechReader(id) {
     const guide = techData.find(g => String(g.id) === String(id));
     if (!guide) return;
+    recordPostView(guide.id);
 
     this.ensureReaderModalInDOM();
     this.currentReaderItem = guide;
@@ -1878,6 +1894,7 @@ class NexoraApp {
   openPromptModal(id) {
     const promptItem = promptsData.find(p => String(p.id) === String(id));
     if (!promptItem) return;
+    recordPostView(promptItem.id);
 
     this.ensurePromptModalInDOM();
     this.currentPromptItem = promptItem;
@@ -1923,6 +1940,7 @@ class NexoraApp {
   openBookReader(id) {
     const book = booksData.find(b => String(b.id) === String(id));
     if (!book) return;
+    recordPostView(book.id);
 
     this.ensureBookModalInDOM();
     this.currentBookItem = book;
@@ -3064,6 +3082,10 @@ class NexoraApp {
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
               <span id="admin-form-tab-label">নতুন পোস্ট তৈরি করুন</span>
             </button>
+            <button type="button" class="admin-tab-btn" id="tab-btn-analytics" onclick="window.nexoraApp.switchAdminTab('analytics')">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              <span>📊 সাইট অ্যানালিটিক্স</span>
+            </button>
           </div>
 
           <div class="modal-body admin-modal-body">
@@ -3288,6 +3310,13 @@ class NexoraApp {
                 </div>
               </form>
             </div>
+
+            <!-- VIEW 3: Site Analytics & Visitor Tracking View -->
+            <div class="admin-tab-pane" id="admin-pane-analytics">
+              <div class="admin-analytics-dashboard" id="admin-analytics-container">
+                <!-- Dynamically populated via renderAnalyticsDashboard() -->
+              </div>
+            </div>
           </div>
 
           <div class="modal-footer admin-modal-footer">
@@ -3322,23 +3351,561 @@ class NexoraApp {
 
     const btnList = document.getElementById('tab-btn-posts-list');
     const btnForm = document.getElementById('tab-btn-create-post');
+    const btnAnalytics = document.getElementById('tab-btn-analytics');
     const paneList = document.getElementById('admin-pane-list');
     const paneForm = document.getElementById('admin-pane-form');
+    const paneAnalytics = document.getElementById('admin-pane-analytics');
 
-    if (btnList && btnForm && paneList && paneForm) {
-      if (tabName === 'list') {
-        btnList.classList.add('active');
-        btnForm.classList.remove('active');
-        paneList.classList.add('active');
-        paneForm.classList.remove('active');
-        this.renderAdminPostList();
-      } else {
-        btnList.classList.remove('active');
-        btnForm.classList.add('active');
-        paneList.classList.remove('active');
-        paneForm.classList.add('active');
+    [btnList, btnForm, btnAnalytics].forEach(b => { if (b) b.classList.remove('active'); });
+    [paneList, paneForm, paneAnalytics].forEach(p => { if (p) p.classList.remove('active'); });
+
+    if (tabName === 'list') {
+      if (btnList) btnList.classList.add('active');
+      if (paneList) paneList.classList.add('active');
+      this.renderAdminPostList();
+    } else if (tabName === 'form') {
+      if (btnForm) btnForm.classList.add('active');
+      if (paneForm) paneForm.classList.add('active');
+    } else if (tabName === 'analytics') {
+      if (btnAnalytics) btnAnalytics.classList.add('active');
+      if (paneAnalytics) paneAnalytics.classList.add('active');
+      this.loadAndRenderAnalytics();
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // সাইট অ্যানালিটিক্স ও ভিজিটর রিপোর্ট সিস্টেম (Analytics & Visitor Metrics)
+  // ------------------------------------------------------------------------
+  async loadAndRenderAnalytics(forceRefresh = false) {
+    const container = document.getElementById('admin-analytics-container');
+    if (!container) return;
+
+    if (!this.analyticsDataCache || forceRefresh) {
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 14px;">
+          <div class="spinner" style="width: 38px; height: 38px; border: 3px solid rgba(0, 240, 255, 0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+          <div style="font-size: 0.9375rem; color: var(--text-secondary); font-weight: 600;">রিয়েল-টাইম সাইট অ্যানালিটিক্স ও ভিজিটর রিপোর্ট প্রস্তুত হচ্ছে...</div>
+        </div>
+      `;
+      try {
+        this.analyticsDataCache = await fetchAnalyticsOverview();
+      } catch (err) {
+        console.error('Failed to load analytics:', err);
       }
     }
+
+    const data = this.analyticsDataCache || {
+      todayViews: 0,
+      todayVisitors: 0,
+      last7DaysViews: 0,
+      last7DaysVisitors: 0,
+      last30DaysViews: 0,
+      last30DaysVisitors: 0,
+      last365DaysViews: 0,
+      last365DaysVisitors: 0,
+      lifetimeViews: 0,
+      totalVisitors: 0,
+      postViews: {},
+      dailySeries: []
+    };
+
+    container.innerHTML = `
+      <!-- 1. Header Banner with Live Pulse & Refresh -->
+      <div class="analytics-header-banner">
+        <div class="analytics-banner-left">
+          <div class="analytics-pulse-dot" title="রিয়েল-টাইম লাইভ ট্র্যাকিং সক্রিয়"></div>
+          <div>
+            <div class="analytics-banner-title">রিয়েল-টাইম সাইট ভিজিটর ও ভিউ ট্র্যাকিং সিস্টেম</div>
+            <div class="analytics-banner-sub">ওয়েবসাইটের মোট ভিজিটর, দৈনিক/মাসিক/বাৎসরিক ভিউ ট্রেন্ড এবং পোস্ট-ভিত্তিক বিস্তারিত রিডিং পরিসংখ্যান</div>
+          </div>
+        </div>
+        <div class="analytics-banner-actions">
+          <button type="button" class="btn-refresh-analytics" onclick="window.nexoraApp.refreshAnalytics()" title="ক্লাউড থেকে সর্বশেষ ডাটা রিফ্রেশ করুন">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>রিফ্রেশ ডাটা</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. KPI Summary Grid (Website Visitors, Today, 7 Days, 30 Days, 365 Days, Lifetime) -->
+      <div class="analytics-kpi-grid">
+        <!-- KPI 1: ওয়েবসাইট ভিজিটর -->
+        <div class="analytics-kpi-card cyan">
+          <div class="kpi-top-row">
+            <span class="kpi-label">ওয়েবসাইট ভিজিটর</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.totalVisitors)}</div>
+          <div class="kpi-hint">
+            <span>আজকের নতুন ভিজিটর: <strong>${toBengaliNumber(data.todayVisitors)}</strong> জন</span>
+          </div>
+        </div>
+
+        <!-- KPI 2: আজকের ভিউ -->
+        <div class="analytics-kpi-card emerald">
+          <div class="kpi-top-row">
+            <span class="kpi-label">আজকের ভিউ</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.todayViews)}</div>
+          <div class="kpi-hint">
+            <span>আজকের মোট পেজভিউ সংখ্যা</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: গত ৭ দিনের ভিউ -->
+        <div class="analytics-kpi-card purple">
+          <div class="kpi-top-row">
+            <span class="kpi-label">গত ৭ দিনের ভিউ</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.last7DaysViews)}</div>
+          <div class="kpi-hint">
+            <span>ভিজিটর: <strong>${toBengaliNumber(data.last7DaysVisitors)}</strong> জন</span>
+          </div>
+        </div>
+
+        <!-- KPI 4: গত ৩০ দিনের ভিউ -->
+        <div class="analytics-kpi-card amber">
+          <div class="kpi-top-row">
+            <span class="kpi-label">গত ৩০ দিনের ভিউ</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.last30DaysViews)}</div>
+          <div class="kpi-hint">
+            <span>ভিজিটর: <strong>${toBengaliNumber(data.last30DaysVisitors)}</strong> জন</span>
+          </div>
+        </div>
+
+        <!-- KPI 5: গত ৩৬৫ দিনের ভিউ -->
+        <div class="analytics-kpi-card indigo">
+          <div class="kpi-top-row">
+            <span class="kpi-label">গত ৩৬৫ দিন (১ বছর)</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.last365DaysViews)}</div>
+          <div class="kpi-hint">
+            <span>ভিজিটর: <strong>${toBengaliNumber(data.last365DaysVisitors)}</strong> জন</span>
+          </div>
+        </div>
+
+        <!-- KPI 6: লাইফটাইম ভিউ -->
+        <div class="analytics-kpi-card rose">
+          <div class="kpi-top-row">
+            <span class="kpi-label">লাইফটাইম মোট ভিউ</span>
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </div>
+          </div>
+          <div class="kpi-metric">${toBengaliNumber(data.lifetimeViews)}</div>
+          <div class="kpi-hint">
+            <span>সাইটের শুরু থেকে সর্বমোট ভিউ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Interactive SVG Trend Chart Section -->
+      <div class="analytics-chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h4 class="chart-title">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+              <span>দৈনিক ভিউ ট্রেন্ড অ্যানালাইসিস (Trend Graph Chart)</span>
+            </h4>
+            <span class="chart-subtitle">গ্রাফের পয়েন্টে মাউস বা টাচ করে নির্দিষ্ট দিনের ভিউ ও ইউনিক ভিজিটর দেখুন</span>
+          </div>
+          <div class="chart-period-tabs">
+            <button type="button" class="chart-period-btn ${this.analyticsPeriod === 7 ? 'active' : ''}" onclick="window.nexoraApp.setAnalyticsPeriod(7)">গত ৭ দিন</button>
+            <button type="button" class="chart-period-btn ${this.analyticsPeriod === 14 ? 'active' : ''}" onclick="window.nexoraApp.setAnalyticsPeriod(14)">গত ১৪ দিন</button>
+            <button type="button" class="chart-period-btn ${this.analyticsPeriod === 30 ? 'active' : ''}" onclick="window.nexoraApp.setAnalyticsPeriod(30)">গত ৩০ দিন</button>
+          </div>
+        </div>
+
+        <div class="chart-svg-container" id="analytics-chart-wrap">
+          ${this.renderSvgChart(data.dailySeries, this.analyticsPeriod)}
+        </div>
+
+        <div class="chart-footer-summary" id="analytics-chart-summary">
+          ${this.renderChartSummary(data.dailySeries, this.analyticsPeriod)}
+        </div>
+      </div>
+
+      <!-- 4. Post-by-Post Views Breakdown Section -->
+      <div class="analytics-posts-card">
+        <div class="posts-analytics-header">
+          <h4 class="posts-analytics-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>কোন পোস্টে কত ভিউ হয়েছে (Post-by-Post Views)</span>
+          </h4>
+          <div class="posts-analytics-controls">
+            <div class="admin-filter-pills" id="analytics-post-pills">
+              <button type="button" class="admin-pill ${this.analyticsPostFilter === 'all' ? 'active' : ''}" onclick="window.nexoraApp.filterAnalyticsPosts('all')">সবগুলো</button>
+              <button type="button" class="admin-pill ${this.analyticsPostFilter === 'news' ? 'active' : ''}" onclick="window.nexoraApp.filterAnalyticsPosts('news')">📰 সংবাদ</button>
+              <button type="button" class="admin-pill ${this.analyticsPostFilter === 'prompts' ? 'active' : ''}" onclick="window.nexoraApp.filterAnalyticsPosts('prompts')">🤖 প্রম্পটস</button>
+              <button type="button" class="admin-pill ${this.analyticsPostFilter === 'tech' ? 'active' : ''}" onclick="window.nexoraApp.filterAnalyticsPosts('tech')">💻 প্রযুক্তি</button>
+              <button type="button" class="admin-pill ${this.analyticsPostFilter === 'books' ? 'active' : ''}" onclick="window.nexoraApp.filterAnalyticsPosts('books')">📚 ফ্রি বই</button>
+            </div>
+            <div class="admin-search-wrap" style="max-width: 200px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" class="analytics-search-input" placeholder="পোস্ট খুঁজুন..." value="${this.analyticsPostSearch}" oninput="window.nexoraApp.onAnalyticsPostSearch(this.value)" />
+            </div>
+            <select class="analytics-sort-select" onchange="window.nexoraApp.sortAnalyticsPosts(this.value)">
+              <option value="views-desc" ${this.analyticsPostSort === 'views-desc' ? 'selected' : ''}>ভিউ অনুযায়ী (সর্বোচ্চ আগে)</option>
+              <option value="views-asc" ${this.analyticsPostSort === 'views-asc' ? 'selected' : ''}>ভিউ অনুযায়ী (সর্বনিম্ন আগে)</option>
+              <option value="newest" ${this.analyticsPostSort === 'newest' ? 'selected' : ''}>নতুন পোস্ট আগে</option>
+              <option value="title" ${this.analyticsPostSort === 'title' ? 'selected' : ''}>শিরোনাম অনুযায়ী (অক্ষরক্রম)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="posts-analytics-table-wrap" id="analytics-posts-table-wrap">
+          ${this.renderPostViewsTableMarkup(data.postViews)}
+        </div>
+      </div>
+    `;
+  }
+
+  renderSvgChart(dailySeries, period) {
+    if (!dailySeries || !dailySeries.length) {
+      return '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:var(--text-muted);">কোনো চার্ট ডাটা পাওয়া যায়নি</div>';
+    }
+    const series = dailySeries.slice(-period);
+    const n = series.length;
+    const maxVal = Math.max(...series.map(s => s.views), 10);
+    const yMax = Math.ceil((maxVal * 1.15) / 50) * 50;
+
+    const width = 800;
+    const height = 240;
+    const padL = 55;
+    const padR = 25;
+    const padT = 20;
+    const padB = 38;
+    const chartW = width - padL - padR;
+    const chartH = height - padT - padB;
+
+    const getX = (i) => padL + (i / Math.max(n - 1, 1)) * chartW;
+    const getY = (val) => padT + chartH - (val / yMax) * chartH;
+
+    const points = series.map((s, i) => ({
+      x: getX(i),
+      y: getY(s.views),
+      data: s
+    }));
+
+    let pathD = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i];
+      const p1 = points[i + 1];
+      const cpx = p0.x + (p1.x - p0.x) / 2;
+      pathD += ` C ${cpx} ${p0.y}, ${cpx} ${p1.y}, ${p1.x} ${p1.y}`;
+    }
+
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${padT + chartH} L ${points[0].x} ${padT + chartH} Z`;
+
+    let gridLinesMarkup = '';
+    for (let step = 0; step <= 4; step++) {
+      const frac = step / 4;
+      const yVal = Math.round(yMax * frac);
+      const yPos = padT + chartH - (frac * chartH);
+      gridLinesMarkup += `
+        <line x1="${padL}" y1="${yPos}" x2="${width - padR}" y2="${yPos}" class="chart-grid-line" />
+        <text x="${padL - 10}" y="${yPos + 4}" text-anchor="end" class="chart-axis-label">${toBengaliNumber(yVal)}</text>
+      `;
+    }
+
+    let xAxisMarkup = '';
+    const labelStep = period <= 7 ? 1 : period <= 14 ? 2 : 4;
+    series.forEach((s, i) => {
+      if (i % labelStep === 0 || i === n - 1) {
+        const xPos = getX(i);
+        xAxisMarkup += `
+          <text x="${xPos}" y="${height - 10}" text-anchor="middle" class="chart-axis-label">${s.label}</text>
+        `;
+      }
+    });
+
+    let dotsMarkup = '';
+    points.forEach((p) => {
+      dotsMarkup += `
+        <circle cx="${p.x}" cy="${p.y}" r="4.5" class="chart-dot-point" 
+          data-date="${p.data.label} (${p.data.dayName})"
+          data-views="${toBengaliNumber(p.data.views)}"
+          data-visitors="${toBengaliNumber(p.data.visitors)}"
+          onmouseenter="window.nexoraApp.handleChartHover(event, this)"
+          onmouseleave="window.nexoraApp.hideChartTooltip()"
+          ontouchstart="window.nexoraApp.handleChartHover(event, this)"
+        />
+      `;
+    });
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" class="analytics-svg-chart" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="analytics-gradient-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.45" />
+            <stop offset="60%" stop-color="#8B5CF6" stop-opacity="0.15" />
+            <stop offset="100%" stop-color="#0A0F1D" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        ${gridLinesMarkup}
+        <path d="${areaD}" class="chart-area-fill" />
+        <path d="${pathD}" class="chart-line-stroke" />
+        ${dotsMarkup}
+        ${xAxisMarkup}
+      </svg>
+      <div id="analytics-chart-tooltip" class="chart-tooltip-box"></div>
+    `;
+  }
+
+  renderChartSummary(dailySeries, period) {
+    if (!dailySeries || !dailySeries.length) return '';
+    const series = dailySeries.slice(-period);
+    const totalPeriodViews = series.reduce((acc, curr) => acc + (curr.views || 0), 0);
+    const avgViews = Math.round(totalPeriodViews / Math.max(series.length, 1));
+    const peak = series.reduce((max, s) => s.views > max.views ? s : max, series[0]);
+
+    return `
+      <div class="chart-summary-item">
+        <span class="chart-summary-label">পিরিয়ডের মোট ভিউ</span>
+        <span class="chart-summary-val cyan">${toBengaliNumber(totalPeriodViews)} টি</span>
+      </div>
+      <div class="chart-summary-item">
+        <span class="chart-summary-label">দৈনিক গড় ভিউ</span>
+        <span class="chart-summary-val purple">${toBengaliNumber(avgViews)} টি / দিন</span>
+      </div>
+      <div class="chart-summary-item">
+        <span class="chart-summary-label">সর্বোচ্চ ভিউয়ের দিন</span>
+        <span class="chart-summary-val">${peak ? peak.label : ''} (${peak ? toBengaliNumber(peak.views) : '০'} ভিউ)</span>
+      </div>
+    `;
+  }
+
+  handleChartHover(event, dotEl) {
+    const tooltip = document.getElementById('analytics-chart-tooltip');
+    const container = document.getElementById('analytics-chart-wrap');
+    if (!tooltip || !container || !dotEl) return;
+
+    const date = dotEl.getAttribute('data-date');
+    const views = dotEl.getAttribute('data-views');
+    const visitors = dotEl.getAttribute('data-visitors');
+
+    tooltip.innerHTML = `
+      <div class="tooltip-date">📅 ${date}</div>
+      <div class="tooltip-stat-row">
+        <span>👁️ মোট ভিউ:</span>
+        <span class="tooltip-stat-val">${views}</span>
+      </div>
+      <div class="tooltip-stat-row">
+        <span>👥 ইউনিক ভিজিটর:</span>
+        <span class="tooltip-stat-val">${visitors} জন</span>
+      </div>
+    `;
+
+    const dotRect = dotEl.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const left = dotRect.left - containerRect.left + (dotRect.width / 2);
+    const top = dotRect.top - containerRect.top;
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.classList.add('show');
+  }
+
+  hideChartTooltip() {
+    const tooltip = document.getElementById('analytics-chart-tooltip');
+    if (tooltip) tooltip.classList.remove('show');
+  }
+
+  setAnalyticsPeriod(days) {
+    this.analyticsPeriod = Number(days);
+    const btns = document.querySelectorAll('.chart-period-btn');
+    btns.forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.includes(String(days)));
+    });
+    if (this.analyticsDataCache) {
+      const chartWrap = document.getElementById('analytics-chart-wrap');
+      if (chartWrap) chartWrap.innerHTML = this.renderSvgChart(this.analyticsDataCache.dailySeries, this.analyticsPeriod);
+      const sumWrap = document.getElementById('analytics-chart-summary');
+      if (sumWrap) sumWrap.innerHTML = this.renderChartSummary(this.analyticsDataCache.dailySeries, this.analyticsPeriod);
+    }
+  }
+
+  renderPostViewsTableMarkup(postViews = {}) {
+    let allPosts = this.getAllAdminPosts();
+
+    // 1. Filter by category
+    if (this.analyticsPostFilter && this.analyticsPostFilter !== 'all') {
+      allPosts = allPosts.filter(p => p.type === this.analyticsPostFilter);
+    }
+
+    // 2. Filter by search query
+    if (this.analyticsPostSearch) {
+      const q = this.analyticsPostSearch.toLowerCase().trim();
+      allPosts = allPosts.filter(p => 
+        (p.title && p.title.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.author && p.author.toLowerCase().includes(q))
+      );
+    }
+
+    // Add views property to each post
+    const postsWithViews = allPosts.map(p => {
+      const v = Number(postViews[p.id] || 0);
+      return { ...p, viewsCount: v };
+    });
+
+    // 3. Sort
+    if (this.analyticsPostSort === 'views-desc') {
+      postsWithViews.sort((a, b) => b.viewsCount - a.viewsCount);
+    } else if (this.analyticsPostSort === 'views-asc') {
+      postsWithViews.sort((a, b) => a.viewsCount - b.viewsCount);
+    } else if (this.analyticsPostSort === 'title') {
+      postsWithViews.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    } else if (this.analyticsPostSort === 'newest') {
+      postsWithViews.sort((a, b) => String(b.id).localeCompare(String(a.id)));
+    }
+
+    if (postsWithViews.length === 0) {
+      return `
+        <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+          কোনো পোস্টের ফলাফল পাওয়া যায়নি। অন্য কোনো ফিল্টার বা অনুসন্ধান ট্রাই করুন।
+        </div>
+      `;
+    }
+
+    const maxView = Math.max(...postsWithViews.map(p => p.viewsCount), 1);
+
+    const typeIcons = {
+      news: '📰',
+      prompts: '🤖',
+      tech: '💻',
+      books: '📚'
+    };
+
+    const typeNames = {
+      news: 'সংবাদ',
+      prompts: 'প্রম্পট',
+      tech: 'প্রযুক্তি',
+      books: 'বই'
+    };
+
+    let rowsHtml = '';
+    postsWithViews.forEach((post, index) => {
+      const rankNum = index + 1;
+      const rankClass = rankNum === 1 ? 'rank-1' : rankNum === 2 ? 'rank-2' : rankNum === 3 ? 'rank-3' : '';
+      const percent = Math.max(6, Math.min(100, Math.round((post.viewsCount / maxView) * 100)));
+
+      rowsHtml += `
+        <tr>
+          <td style="width: 50px;">
+            <span class="rank-badge ${rankClass}">#${toBengaliNumber(rankNum)}</span>
+          </td>
+          <td>
+            <div class="post-meta-cell">
+              <a href="javascript:void(0)" class="post-title-link" onclick="window.nexoraApp.openPostPreview('${post.id}', '${post.type}')" title="পোস্টটি প্রিভিউ দেখুন">${post.title}</a>
+              <div class="post-sub-meta">
+                <span>${post.category || 'সাধারণ'}</span>
+                <span>·</span>
+                <span>${post.author || 'নেক্সোরা'}</span>
+                <span>·</span>
+                <span>${post.date || ''}</span>
+              </div>
+            </div>
+          </td>
+          <td style="width: 110px;">
+            <span class="meta-tag cyan" style="font-size: 0.72rem; padding: 2px 8px;">
+              ${typeIcons[post.type] || '📄'} ${typeNames[post.type] || post.type}
+            </span>
+          </td>
+          <td style="width: 220px;">
+            <div class="views-progress-wrap">
+              <div class="views-bar-track">
+                <div class="views-bar-fill" style="width: ${percent}%;"></div>
+              </div>
+              <span class="views-number">${toBengaliNumber(post.viewsCount)} ভিউ</span>
+            </div>
+          </td>
+          <td style="width: 100px; text-align: right;">
+            <button type="button" class="btn-open-post-analytics" onclick="window.nexoraApp.openPostPreview('${post.id}', '${post.type}')" title="পোস্টের ভিউ ও কন্টেন্ট দেখুন">
+              পোস্ট দেখুন →
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    return `
+      <table class="posts-analytics-table">
+        <thead>
+          <tr>
+            <th>র‍্যাংক</th>
+            <th>পোস্ট শিরোনাম ও ক্যাটাগরি</th>
+            <th>ক্যাটাগরি</th>
+            <th>ভিউ সংখ্যা ও রিলেটিভ প্রগ্রেস</th>
+            <th style="text-align: right;">অ্যাকশন</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    `;
+  }
+
+  filterAnalyticsPosts(type) {
+    this.analyticsPostFilter = type;
+    const pills = document.querySelectorAll('#analytics-post-pills .admin-pill');
+    pills.forEach(p => {
+      const match = type === 'all' ? p.textContent.includes('সব') :
+                    type === 'news' ? p.textContent.includes('সংবাদ') :
+                    type === 'prompts' ? p.textContent.includes('প্রম্পট') :
+                    type === 'tech' ? p.textContent.includes('প্রযুক্তি') :
+                    p.textContent.includes('বই');
+      p.classList.toggle('active', match);
+    });
+    this.refreshPostViewsTableOnly();
+  }
+
+  onAnalyticsPostSearch(query) {
+    this.analyticsPostSearch = query;
+    this.refreshPostViewsTableOnly();
+  }
+
+  sortAnalyticsPosts(sortVal) {
+    this.analyticsPostSort = sortVal;
+    this.refreshPostViewsTableOnly();
+  }
+
+  refreshPostViewsTableOnly() {
+    const tableWrap = document.getElementById('analytics-posts-table-wrap');
+    if (tableWrap && this.analyticsDataCache) {
+      tableWrap.innerHTML = this.renderPostViewsTableMarkup(this.analyticsDataCache.postViews);
+    }
+  }
+
+  async refreshAnalytics() {
+    await this.loadAndRenderAnalytics(true);
+    this.showToast('অ্যানালিটিক্স ডাটা সফলভাবে রিফ্রেশ করা হয়েছে!', 'success');
+  }
+
+  openPostPreview(id, type) {
+    this.closeModal('admin-modal');
+    setTimeout(() => {
+      if (type === 'news') this.openArticleReader(id);
+      else if (type === 'tech' || type === 'technology') this.openTechReader(id);
+      else if (type === 'prompts' || type === 'prompt') this.openPromptModal(id);
+      else if (type === 'books' || type === 'book') this.openBookReader(id);
+    }, 150);
   }
 
   filterAdminList(type) {

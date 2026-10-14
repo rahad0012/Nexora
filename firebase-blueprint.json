@@ -243,6 +243,57 @@
         }
       },
       "required": ["email", "role"]
+    },
+    "SiteAnalytics": {
+      "title": "Site Analytics",
+      "description": "Aggregated daily and summary analytics for site views and visitor tracking",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier (e.g. overview or daily_YYYY-MM-DD)"
+        },
+        "totalViews": {
+          "type": "number",
+          "description": "Total cumulative page views"
+        },
+        "totalVisitors": {
+          "type": "number",
+          "description": "Total unique visitors"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date string YYYY-MM-DD for daily documents"
+        },
+        "views": {
+          "type": "number",
+          "description": "Views for this specific date"
+        },
+        "uniqueVisitors": {
+          "type": "number",
+          "description": "Unique visitors for this specific date"
+        },
+        "postViews": {
+          "type": "object",
+          "description": "Map of postId to view count"
+        },
+        "devices": {
+          "type": "object",
+          "description": "Map of device category (Mobile, Desktop, Tablet) to visitor count"
+        },
+        "browsers": {
+          "type": "object",
+          "description": "Map of browser name (Chrome, Safari, Firefox, Edge, etc.) to visitor count"
+        },
+        "operatingSystems": {
+          "type": "object",
+          "description": "Map of operating system name (Android, iOS, Windows, macOS, Linux) to count"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp ISO string"
+        }
+      }
     }
   },
   "firestore": {
@@ -265,6 +316,10 @@
     "/admins/{adminId}": {
       "schema": { "$ref": "#/entities/Admin" },
       "description": "Collection of authorized administrators"
+    },
+    "/site_analytics/{docId}": {
+      "schema": { "$ref": "#/entities/SiteAnalytics" },
+      "description": "Collection of site analytics, daily visitor stats, and post view metrics"
     }
   }
 }
