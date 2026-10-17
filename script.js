@@ -20,6 +20,129 @@ import {
 } from './firebase-config.js';
 
 // ==========================================================================
+// ০. অ্যাডমিন প্যানেল বিজ্ঞাপন ব্লকার ও প্রোটেকশন শিল্ড (Bulletproof Admin Ad Shield)
+// ==========================================================================
+(function installAdminAdShield() {
+  if (typeof window === 'undefined') return;
+
+  // 1. Block unauthorized popups/popunders while admin panel is active
+  const originalWindowOpen = window.open;
+  window.open = function(url, target, features) {
+    if (document.body && document.body.classList.contains('admin-panel-open')) {
+      if (window._allowAdminWindowOpen) {
+        return originalWindowOpen.apply(this, arguments);
+      }
+      console.warn('[Nexora Admin Shield] Blocked ad popup while in Admin Panel:', url);
+      return null;
+    }
+    return originalWindowOpen.apply(this, arguments);
+  };
+
+  // 2. Intercept third-party click and mousedown listeners on document and window
+  const originalDocAEL = Document.prototype.addEventListener;
+  const originalWinAEL = Window.prototype.addEventListener;
+  const adEvents = new Set(['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'touchstart', 'touchend']);
+
+  function isEventInAdmin(e) {
+    if (!e) return false;
+    if (document.body && document.body.classList.contains('admin-panel-open')) return true;
+    const target = e.target;
+    if (target && typeof target.closest === 'function') {
+      return !!target.closest('#admin-modal, #admin-login-modal, #delete-confirm-modal, .admin-modal-backdrop, .admin-modal-container, .btn-admin');
+    }
+    return false;
+  }
+
+  function wrapAdListener(fn) {
+    if (typeof fn !== 'function') return fn;
+    const wrapped = function(e) {
+      if (isEventInAdmin(e)) {
+        if (wrapped._isNexoraInternal || fn._isNexoraInternal) {
+          return fn.apply(this, arguments);
+        }
+        // Block third-party ad listener from running on admin interactions
+        return;
+      }
+      return fn.apply(this, arguments);
+    };
+    wrapped._isNexoraShield = true;
+    return wrapped;
+  }
+
+  Document.prototype.addEventListener = function(type, listener, options) {
+    if (adEvents.has(type) && typeof listener === 'function' && !listener._isNexoraInternal) {
+      return originalDocAEL.call(this, type, wrapAdListener(listener), options);
+    }
+    return originalDocAEL.call(this, type, listener, options);
+  };
+
+  Window.prototype.addEventListener = function(type, listener, options) {
+    if (adEvents.has(type) && typeof listener === 'function' && !listener._isNexoraInternal) {
+      return originalWinAEL.call(this, type, wrapAdListener(listener), options);
+    }
+    return originalWinAEL.call(this, type, listener, options);
+  };
+})();
+
+/**
+ * Auto-links plain URLs and Markdown links inside post content,
+ * ensuring all generated <a> tags open in a new tab with target="_blank" and rel="noopener noreferrer".
+ */
+export function linkifyHtml(html) {
+  if (!html || typeof html !== 'string') return '';
+
+  // 1. Convert Markdown links [Title](https://...) to HTML anchors with target="_blank"
+  let result = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, (match, text, url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="content-link">${text}</a>`;
+  });
+
+  // 2. Tokenize by HTML tags to prevent altering tag attributes
+  const parts = result.split(/(<[^>]+>)/g);
+  let inAnchor = false;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.startsWith('<')) {
+      if (/^<a\b/i.test(part)) {
+        inAnchor = true;
+        let tag = part;
+        if (!/\btarget=/i.test(tag)) {
+          tag = tag.replace(/^<a\b/i, '<a target="_blank"');
+        } else {
+          tag = tag.replace(/\btarget=(["'])[^"']*\1/i, 'target="_blank"');
+        }
+        if (!/\brel=/i.test(tag)) {
+          tag = tag.replace(/^<a\b/i, '<a rel="noopener noreferrer"');
+        } else {
+          tag = tag.replace(/\brel=(["'])[^"']*\1/i, 'rel="noopener noreferrer"');
+        }
+        if (!/\bclass=(["'])[^"']*\bcontent-link\b[^"']*\1/i.test(tag)) {
+          if (/\bclass=(["'])(.*?)\1/i.test(tag)) {
+            tag = tag.replace(/\bclass=(["'])(.*?)\1/i, 'class="$2 content-link"');
+          } else {
+            tag = tag.replace(/^<a\b/i, '<a class="content-link"');
+          }
+        }
+        parts[i] = tag;
+      } else if (/^<\/a>/i.test(part)) {
+        inAnchor = false;
+      }
+    } else if (!inAnchor) {
+      // Auto-link raw URLs starting with http://, https://, or www.
+      let text = part.replace(/(https?:\/\/[^\s<>"')]+(?:\([^\s<>"')]+\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="content-link">${url}</a>`;
+      });
+      text = text.replace(/(^|[\s(])(www\.[^\s<>"')]+(?:\([^\s<>"')]+\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g, (match, prefix, url) => {
+        return `${prefix}<a href="https://${url}" target="_blank" rel="noopener noreferrer" class="content-link">${url}</a>`;
+      });
+      parts[i] = text;
+    }
+  }
+
+  return parts.join('');
+}
+
+// ==========================================================================
 // ১. বাংলা কন্টেন্ট ডেটাসেট (Content Datasets in Bengali)
 // ==========================================================================
 
@@ -1973,7 +2096,7 @@ class NexoraApp {
     if (body) {
       body.innerHTML = `
         <div class="reader-post-card book-card-reader">
-          <div class="reader-card-media" style="height: 240px;">
+          <div class="reader-card-media book-cover-media">
             <img src="${book.cover}" alt="${book.title}" class="reader-card-img" />
             <div class="reader-card-badge-row">
               <span class="meta-tag purple">${book.category}</span>
@@ -2193,9 +2316,13 @@ class NexoraApp {
 
   promptSetCustomAdLink() {
     const current = localStorage.getItem('nexora_custom_ad_link') || '';
-    const input = prompt('Adsterra বা CPM নেটওয়ার্কের ডিরেক্ট অ্যাড লিংক (Direct Link URL) প্রদান করুন:', current);
-    if (input !== null) {
-      this.setCustomAdLink(input);
+    try {
+      const input = prompt('Adsterra বা CPM নেটওয়ার্কের ডিরেক্ট অ্যাড লিংক (Direct Link URL) প্রদান করুন:', current);
+      if (input !== null) {
+        this.setCustomAdLink(input);
+      }
+    } catch (e) {
+      console.warn('prompt not available in environment:', e);
     }
   }
 
@@ -3035,10 +3162,6 @@ class NexoraApp {
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 <span>Firestore সিঙ্ক</span>
               </button>
-              <button type="button" class="btn btn-ghost btn-sm btn-admin" onclick="window.nexoraApp.resetAllPostsToDefault()" title="ডিফল্ট ডেটায় রিসেট করুন">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-                <span>ডিফল্ট রিসেট</span>
-              </button>
               <button type="button" class="btn-admin-logout btn-admin" onclick="window.nexoraApp.adminLogout()" title="লগআউট করুন">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 <span>লগআউট</span>
@@ -3347,6 +3470,8 @@ class NexoraApp {
 
   switchAdminTab(tabName) {
     this.ensureAdminModalInDOM();
+    this.suppressAdsForAdmin(true);
+    this.setupAdminAdShield();
     this.adminCurrentTab = tabName;
 
     const btnList = document.getElementById('tab-btn-posts-list');
@@ -4104,6 +4229,8 @@ class NexoraApp {
 
   startCreateNewPost() {
     this.ensureAdminModalInDOM();
+    this.suppressAdsForAdmin(true);
+    this.setupAdminAdShield();
     this.adminEditingPost = null;
     this.resetAdminForm();
 
@@ -4141,6 +4268,8 @@ class NexoraApp {
 
   startEditPost(type, id) {
     this.ensureAdminModalInDOM();
+    this.suppressAdsForAdmin(true);
+    this.setupAdminAdShield();
     let item = null;
     if (type === 'news') item = newsData.find(n => n.id === id);
     if (type === 'prompts') item = promptsData.find(p => p.id === id);
@@ -4535,7 +4664,20 @@ class NexoraApp {
       return;
     }
     const directUrl = getDirectPdfDownloadUrl(url);
-    window.open(directUrl, '_blank', 'noopener,noreferrer');
+    window._allowAdminWindowOpen = true;
+    try {
+      window.open(directUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      const a = document.createElement('a');
+      a.href = directUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      setTimeout(() => { window._allowAdminWindowOpen = false; }, 400);
+    }
   }
 
   resetAdminForm() {
@@ -4939,9 +5081,10 @@ class NexoraApp {
     const self = this;
     const SMARTLINK = 'https://www.profitableratecpmnetwork.com/uk5x37ih?key=7029c8770d8362183bcf09703b7c730b';
 
-    document.addEventListener('click', (e) => {
-      // 1. Guard against admin operations and critical controls
-      if (e.target.closest('.admin-modal-backdrop') || e.target.closest('.admin-toolbar')) return;
+    const postAdHandler = (e) => {
+      // 1. Guard against admin operations, active admin panel, and critical controls
+      if (document.body && document.body.classList.contains('admin-panel-open')) return;
+      if (e.target.closest('.admin-modal-backdrop') || e.target.closest('.admin-toolbar') || e.target.closest('.admin-modal-container') || e.target.closest('.btn-admin')) return;
       if (e.target.closest('#admin-modal') || e.target.closest('#admin-login-modal') || e.target.closest('#delete-confirm-modal')) return;
       if (e.target.closest('.modal-close-btn') || e.target.closest('.theme-toggle-btn') || e.target.closest('.mobile-menu-btn')) return;
       if (e.target.closest('#bookmarks-trigger') || e.target.closest('#mobile-bookmarks-trigger') || e.target.closest('#search-trigger')) return;
@@ -4965,7 +5108,9 @@ class NexoraApp {
         // Trigger smartlink in new window
         self.triggerSmartlink(true);
       }
-    }, true);
+    };
+    postAdHandler._isNexoraInternal = true;
+    document.addEventListener('click', postAdHandler, true);
   }
 
   // ------------------------------------------------------------------------
@@ -4977,9 +5122,11 @@ class NexoraApp {
       const el = document.getElementById(id);
       if (el && !el.dataset.adShielded) {
         el.dataset.adShielded = 'true';
-        el.addEventListener('click', (e) => {
-          // Stop propagation so document/window-level ad listeners never trigger on admin clicks
-          e.stopPropagation();
+        ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach(evt => {
+          el.addEventListener(evt, (e) => {
+            // Stop propagation so document/window-level ad listeners never trigger on admin clicks
+            e.stopPropagation();
+          }, false);
         });
       }
     });
@@ -5384,6 +5531,15 @@ class NexoraApp {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.nexoraApp = new NexoraApp();
-});
+function initNexoraApp() {
+  if (!window.nexoraApp) {
+    window.nexoraApp = new NexoraApp();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNexoraApp);
+} else {
+  initNexoraApp();
+}
+
