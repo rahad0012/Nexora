@@ -3402,12 +3402,20 @@ ul, ol {
 
 /* --------------------------------------------------------------------------
    Footer Admin Button & Integration
+   Normally hidden (display: none); revealed on footer hover or focus
    -------------------------------------------------------------------------- */
 .footer-admin-bar {
-  display: flex;
+  display: none !important;
   align-items: center;
   gap: 12px;
   margin-left: auto;
+}
+
+.site-footer:hover .footer-admin-bar,
+.footer-bottom:hover .footer-admin-bar,
+.site-footer:focus-within .footer-admin-bar,
+.footer-bottom:focus-within .footer-admin-bar {
+  display: flex !important;
 }
 
 .btn-footer-admin {
