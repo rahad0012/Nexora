@@ -91,12 +91,13 @@ import {
 export function linkifyHtml(html) {
   if (!html || typeof html !== 'string') return '';
 
-  // 1. Convert Markdown links [Title](https://...) to HTML anchors with target="_blank"
-  let result = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, (match, text, url) => {
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="content-link">${text}</a>`;
+  // 1. Convert Markdown links [Title](https://...) or [Title](www....) to HTML anchors
+  let result = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|www\.)[^\s\)]+)\)/g, (match, text, url) => {
+    const href = url.toLowerCase().startsWith('www.') ? `https://${url}` : url;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="content-link">${text}</a>`;
   });
 
-  // 2. Tokenize by HTML tags to prevent altering tag attributes
+  // 2. Tokenize by HTML tags to prevent altering tag attributes or double-linking
   const parts = result.split(/(<[^>]+>)/g);
   let inAnchor = false;
 
@@ -129,17 +130,57 @@ export function linkifyHtml(html) {
       }
     } else if (!inAnchor) {
       // Auto-link raw URLs starting with http://, https://, or www.
-      let text = part.replace(/(https?:\/\/[^\s<>"')]+(?:\([^\s<>"')]+\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g, (url) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="content-link">${url}</a>`;
-      });
-      text = text.replace(/(^|[\s(])(www\.[^\s<>"')]+(?:\([^\s<>"')]+\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g, (match, prefix, url) => {
-        return `${prefix}<a href="https://${url}" target="_blank" rel="noopener noreferrer" class="content-link">${url}</a>`;
+      // Strip sentence-ending punctuation like .,;:!?)]'" and Bengali punctuation । and ॥
+      const urlRegex = /(https?:\/\/[^\s<>"')]+|(?:\b|^|\s)www\.[^\s<>"')]+)/gi;
+      let text = part.replace(urlRegex, (matched) => {
+        let prefix = '';
+        let url = matched;
+        const spaceMatch = url.match(/^(\s+)/);
+        if (spaceMatch) {
+          prefix = spaceMatch[1];
+          url = url.substring(prefix.length);
+        }
+        let trailing = '';
+        const trailMatch = url.match(/([.,;:!?\)\)'"’”‘’»«\u0964\u0965]+)$/);
+        if (trailMatch) {
+          trailing = trailMatch[1];
+          url = url.substring(0, url.length - trailing.length);
+        }
+        if (!url) return matched;
+        const href = url.toLowerCase().startsWith('www.') ? `https://${url}` : url;
+        return `${prefix}<a href="${href}" target="_blank" rel="noopener noreferrer" class="content-link">${url}</a>${trailing}`;
       });
       parts[i] = text;
     }
   }
 
   return parts.join('');
+}
+
+/**
+ * Converts post HTML content into a clean, editable text format for textareas,
+ * preserving links as markdown [Text](URL) so they don't get destroyed during editing.
+ */
+export function htmlToTextarea(html) {
+  if (!html || typeof html !== 'string') return '';
+  let text = html;
+  // Convert <a ... href="url" ...>label</a> to [label](url) if label is different, or plain url if same
+  text = text.replace(/<a\b[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi, (match, url, label) => {
+    const cleanLabel = label.replace(/<[^>]+>/g, '').trim();
+    if (!cleanLabel || cleanLabel === url) {
+      return url;
+    }
+    return `[${cleanLabel}](${url})`;
+  });
+  // Convert <br> to newline
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  // Convert closing block tags to double newlines
+  text = text.replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, '\n\n');
+  // Strip remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+  // Clean newlines
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+  return text;
 }
 
 // ==========================================================================
@@ -1303,9 +1344,9 @@ class NexoraApp {
             </button>
           </div>
           <h3 class="prompt-card-title">${item.title}</h3>
-          <p class="prompt-card-desc">${item.desc || item.excerpt || ''}</p>
+          <p class="prompt-card-desc">${linkifyHtml(item.desc || item.excerpt || '')}</p>
           <div class="prompt-box" title="সম্পূর্ণ প্রম্পট দেখতে ক্লিক করুন">
-            ${item.promptText || item.desc || ''}
+            ${linkifyHtml(item.promptText || item.desc || '')}
           </div>
           <div class="prompt-card-actions">
             <div class="prompt-actions-left">
@@ -1344,7 +1385,7 @@ class NexoraApp {
             </div>
             <h3 class="book-title">${item.title}</h3>
             <div class="book-author">${item.author || 'লেখক'} (${item.year || '২০২৬'})</div>
-            <p class="book-desc">${item.desc || item.excerpt || ''}</p>
+            <p class="book-desc">${linkifyHtml(item.desc || item.excerpt || '')}</p>
           </div>
           <div class="book-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openBookReader('${item.id}')" style="flex: 1;">
@@ -1379,7 +1420,7 @@ class NexoraApp {
               <span>${item.readTime || '৫ মিনিট পাঠ'}</span>
             </div>
             <h3 class="tech-card-title">${item.title}</h3>
-            <p class="tech-card-summary">${item.summary || item.excerpt || ''}</p>
+            <p class="tech-card-summary">${linkifyHtml(item.summary || item.excerpt || '')}</p>
             <div class="tech-card-footer">
               <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openTechReader('${item.id}')">
                 <span>আরও পড়ুন</span>
@@ -1416,7 +1457,7 @@ class NexoraApp {
             <span>${item.readTime || '৫ মিনিট পাঠ'}</span>
           </div>
           <h3 class="news-card-title">${item.title}</h3>
-          <p class="news-card-excerpt">${item.excerpt || ''}</p>
+          <p class="news-card-excerpt">${linkifyHtml(item.excerpt || '')}</p>
           <div class="news-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openArticleReader('${item.id}')">
               <span>আরও পড়ুন</span>
@@ -1463,7 +1504,7 @@ class NexoraApp {
             <span>${story.readTime}</span>
           </div>
           <h3 class="news-card-title">${story.title}</h3>
-          <p class="news-card-excerpt">${story.excerpt}</p>
+          <p class="news-card-excerpt">${linkifyHtml(story.excerpt)}</p>
           <div class="news-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openArticleReader('${story.id}')">
               <span>আরও পড়ুন</span>
@@ -1511,10 +1552,10 @@ class NexoraApp {
           </button>
         </div>
         <h3 class="prompt-card-title">${prompt.title}</h3>
-        <p class="prompt-card-desc">${prompt.desc}</p>
+        <p class="prompt-card-desc">${linkifyHtml(prompt.desc)}</p>
         
         <div class="prompt-box" title="সম্পূর্ণ প্রম্পট দেখতে ক্লিক করুন">
-          ${prompt.promptText}
+          ${linkifyHtml(prompt.promptText)}
         </div>
 
         <div class="prompt-card-actions">
@@ -1563,7 +1604,7 @@ class NexoraApp {
             <span>${guide.readTime}</span>
           </div>
           <h3 class="tech-card-title">${guide.title}</h3>
-          <p class="tech-card-summary">${guide.summary}</p>
+          <p class="tech-card-summary">${linkifyHtml(guide.summary)}</p>
           <div class="tech-card-footer">
             <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openTechReader('${guide.id}')">
               <span>আরও পড়ুন</span>
@@ -1609,7 +1650,7 @@ class NexoraApp {
           </div>
           <h3 class="book-title">${book.title}</h3>
           <div class="book-author">${book.author} (${book.year})</div>
-          <p class="book-desc">${book.desc}</p>
+          <p class="book-desc">${linkifyHtml(book.desc)}</p>
         </div>
         <div class="book-card-footer">
           <button type="button" class="btn btn-card-readmore" onclick="window.nexoraApp.openBookReader('${book.id}')" style="flex: 1;">
@@ -1620,7 +1661,7 @@ class NexoraApp {
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
           </button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="window.nexoraApp.toggleBookmarkById('${book.id}', 'book')" aria-label="বুকমার্ক করুন">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(book.id) ? 'currentColor' : 'none'}">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="${this.isBookmarked(book.id) ? 'currentColor' : 'none'}">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
           </button>
@@ -1870,13 +1911,13 @@ class NexoraApp {
             <span>নেক্সোরা সম্পাদকীয় যাচাইকৃত</span>
           </div>
           <div class="reader-card-summary-box">
-            <strong>সারসংক্ষেপ:</strong> ${article.excerpt}
+            <strong>সারসংক্ষেপ:</strong> ${linkifyHtml(article.excerpt)}
           </div>
         </div>
         <div class="reader-expand-wrapper" id="reader-expand-wrapper">
           <div class="reader-expand-content-box" id="reader-expand-content-box">
             <div class="reader-content reader-expand-content">
-              ${article.content}
+              ${linkifyHtml(article.content)}
             </div>
             <div class="reader-fade-overlay" id="reader-fade-overlay"></div>
           </div>
@@ -1934,13 +1975,13 @@ class NexoraApp {
             <span>নেক্সোরা ডেভেলপার গাইড</span>
           </div>
           <div class="reader-card-summary-box">
-            <strong>সারসংক্ষেপ:</strong> ${guide.summary}
+            <strong>সারসংক্ষেপ:</strong> ${linkifyHtml(guide.summary)}
           </div>
         </div>
         <div class="reader-expand-wrapper" id="reader-expand-wrapper">
           <div class="reader-expand-content-box" id="reader-expand-content-box">
             <div class="reader-content reader-expand-content">
-              ${guide.guideContent}
+              ${linkifyHtml(guide.guideContent)}
             </div>
             <div class="reader-fade-overlay" id="reader-fade-overlay"></div>
           </div>
@@ -2042,16 +2083,16 @@ class NexoraApp {
         paramsMarkup = Object.entries(promptItem.params).map(([k, v]) => `
           <div class="param-item">
             <div class="param-name">${k}</div>
-            <div class="param-val">${v}</div>
+            <div class="param-val">${linkifyHtml(String(v))}</div>
           </div>
         `).join('');
       }
 
       body.innerHTML = `
-        <p style="color: var(--text-secondary); margin-bottom: 12px;">${promptItem.desc}</p>
-        <div class="prompt-full-box">${promptItem.promptText}</div>
+        <p style="color: var(--text-secondary); margin-bottom: 12px;">${linkifyHtml(promptItem.desc)}</p>
+        <div class="prompt-full-box">${linkifyHtml(promptItem.promptText)}</div>
         <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 14px;">
-          <strong>প্রকৌশল টিপস:</strong> ${promptItem.tips || 'আপনার চাহিদা অনুযায়ী টেম্পারেচার পরিবর্তন করুন।'}
+          <strong>প্রকৌশল টিপস:</strong> ${linkifyHtml(promptItem.tips || 'আপনার চাহিদা অনুযায়ী টেম্পারেচার পরিবর্তন করুন।')}
         </div>
         ${paramsMarkup ? `<div class="prompt-param-grid">${paramsMarkup}</div>` : ''}
       `;
@@ -2111,7 +2152,7 @@ class NexoraApp {
               <span>পাবলিক ডোমেন ক্লাসিক</span>
             </div>
             <div class="reader-card-summary-box">
-              <strong>পুস্তক ভূমিকা:</strong> ${book.desc}
+              <strong>পুস্তক ভূমিকা:</strong> ${linkifyHtml(book.desc)}
             </div>
             ${book.pdfUrl ? `
               <div class="reader-pdf-banner" style="margin: 18px 0 14px;">
@@ -2134,11 +2175,11 @@ class NexoraApp {
           <div class="reader-expand-wrapper" id="book-expand-wrapper">
             <div class="reader-expand-content-box" id="book-expand-content-box">
               <div class="book-reader-content">
-                ${book.chapters.map(ch => `
+                ${(book.chapters || []).map(ch => `
                   <div style="margin-bottom: 24px;">
                     <div class="book-reader-chapter">${ch.heading}</div>
                     <h4 class="book-reader-heading">${ch.heading}</h4>
-                    <p style="margin-bottom: 14px; line-height: 1.8;">${ch.text}</p>
+                    <p style="margin-bottom: 14px; line-height: 1.8;">${linkifyHtml(ch.text)}</p>
                   </div>
                 `).join('')}
                 <div class="sample-notice-banner" style="margin-top: 20px;">
@@ -2629,6 +2670,14 @@ class NexoraApp {
   }
 
   bindEvents() {
+    // Ensure content links open cleanly in a new tab without card or modal click handler interference
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a.content-link, .reader-content a, .reader-body a, .prompt-full-box a, .prompt-box a, .news-card-excerpt a, .tech-card-summary a, .book-desc a');
+      if (link && link.href) {
+        e.stopPropagation();
+      }
+    }, true);
+
     // থিম টগল
     const themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) {
@@ -3418,8 +3467,14 @@ class NexoraApp {
                   </div>
 
                   <div class="form-group" id="group-full-content">
-                    <label for="post-field-content" class="form-label" id="label-full-content">সম্পূর্ণ বিস্তারিত কন্টেন্ট (Full Content) *</label>
-                    <div class="content-help-text">প্যারাগ্রাফ ও সাব-হেডিং লিখতে পারেন। সাধারণ টেক্সট লিখলে স্বয়ংক্রিয়ভাবে প্যারাগ্রাফে রূপান্তর হবে, অথবা &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt; ইত্যাদি HTML ট্যাগ ব্যবহার করতে পারেন।</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <label for="post-field-content" class="form-label" id="label-full-content" style="margin-bottom: 0;">সম্পূর্ণ বিস্তারিত কন্টেন্ট (Full Content) *</label>
+                      <button type="button" class="btn btn-ghost btn-xs btn-admin" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 2px 8px; border: 1px solid var(--border-color); border-radius: 6px;" onclick="window.nexoraApp.insertLinkPrompt()">
+                        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <span>+ লিংক যুক্ত করুন (Add Link)</span>
+                      </button>
+                    </div>
+                    <div class="content-help-text">প্যারাগ্রাফ ও সাব-হেডিং লিখতে পারেন। সরাসরি লিংক (https://... বা www.example.com) অথবা [লিংকের নাম](https://...) ফরম্যাটে লিখলে তা স্বয়ংক্রিয়ভাবে ক্লিকেবল লিংকে রূপান্তর হবে।</div>
                     <textarea id="post-field-content" class="form-input" rows="7" placeholder="পোস্টের সম্পূর্ণ বডি কন্টেন্ট লিখুন..."></textarea>
                   </div>
                 </div>
@@ -4341,27 +4396,27 @@ class NexoraApp {
       if (authToolIn) authToolIn.value = item.author || '';
       if (readIn) readIn.value = item.readTime || '৫ মিনিট পাঠ';
       if (dateIn) dateIn.value = item.date || '';
-      if (excIn) excIn.value = item.excerpt || '';
-      if (contentIn) contentIn.value = (item.content || '').replace(/<[^>]+>/g, '\n').trim() || (item.content || '');
+      if (excIn) excIn.value = htmlToTextarea(item.excerpt || '');
+      if (contentIn) contentIn.value = htmlToTextarea(item.content || '');
     } else if (type === 'prompts') {
       if (authToolIn) authToolIn.value = item.tool || '';
-      if (excIn) excIn.value = item.desc || '';
-      if (promptTextIn) promptTextIn.value = item.promptText || '';
-      if (promptTipsIn) promptTipsIn.value = item.tips || '';
+      if (excIn) excIn.value = htmlToTextarea(item.desc || '');
+      if (promptTextIn) promptTextIn.value = htmlToTextarea(item.promptText || '');
+      if (promptTipsIn) promptTipsIn.value = htmlToTextarea(item.tips || '');
     } else if (type === 'tech') {
       if (authToolIn) authToolIn.value = 'Nexora Tech Team';
       if (readIn) readIn.value = item.readTime || '৬ মিনিট পাঠ';
-      if (excIn) excIn.value = item.summary || '';
-      if (contentIn) contentIn.value = (item.guideContent || '').replace(/<[^>]+>/g, '\n').trim() || (item.guideContent || '');
+      if (excIn) excIn.value = htmlToTextarea(item.summary || '');
+      if (contentIn) contentIn.value = htmlToTextarea(item.guideContent || '');
     } else if (type === 'books') {
       if (authToolIn) authToolIn.value = item.author || '';
       if (bookYearIn) bookYearIn.value = item.year || '';
       if (bookLicIn) bookLicIn.value = item.license || 'পাবলিক ডোমেন (উন্মুক্ত স্বত্ব)';
       if (bookUrlIn) bookUrlIn.value = item.gutenbergUrl || '';
       if (bookPdfIn) bookPdfIn.value = item.pdfUrl || '';
-      if (excIn) excIn.value = item.desc || '';
+      if (excIn) excIn.value = htmlToTextarea(item.desc || '');
       if (contentIn) {
-        contentIn.value = item.chapters && item.chapters[0] ? item.chapters[0].text : '';
+        contentIn.value = item.chapters && item.chapters[0] ? htmlToTextarea(item.chapters[0].text || '') : '';
       }
     }
 
@@ -4680,6 +4735,118 @@ class NexoraApp {
     }
   }
 
+  ensureLinkInsertModalInDOM() {
+    if (document.getElementById('link-insert-modal')) return;
+
+    const modalMarkup = `
+      <div class="modal-backdrop admin-modal-backdrop" id="link-insert-modal" role="dialog" aria-modal="true" aria-labelledby="link-insert-title" aria-hidden="true" style="z-index: 100000;">
+        <div class="modal-container" style="max-width: 440px;">
+          <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent-cyan)" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              <h3 class="modal-heading" id="link-insert-title" style="font-size: 1.05rem;">কন্টেন্টে লিংক যুক্ত করুন</h3>
+            </div>
+            <button type="button" class="modal-close-btn btn-admin" onclick="window.nexoraApp.closeModal('link-insert-modal')" aria-label="বন্ধ করুন">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="modal-body" style="padding: 16px 20px;">
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label for="link-insert-url" class="form-label">ওয়েব লিংক বা ইউআরএল (URL) *</label>
+              <input type="text" id="link-insert-url" class="form-input" placeholder="https://example.com বা www.example.com" />
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="link-insert-text" class="form-label">লিংকের প্রদর্শিত নাম (Link Title / Text)</label>
+              <input type="text" id="link-insert-text" class="form-input" placeholder="যেমন: অফিশিয়াল ওয়েবসাইট (খালি রাখলে সরাসরি URL বসবে)" />
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+              <button type="button" class="btn btn-secondary btn-sm btn-admin" onclick="window.nexoraApp.closeModal('link-insert-modal')">বাতিল</button>
+              <button type="button" class="btn btn-primary btn-sm btn-admin" onclick="window.nexoraApp.confirmInsertLink()">লিংক যোগ করুন</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalMarkup);
+
+    const urlIn = document.getElementById('link-insert-url');
+    if (urlIn) {
+      urlIn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.confirmInsertLink();
+        }
+      });
+    }
+  }
+
+  insertLinkPrompt() {
+    this.ensureLinkInsertModalInDOM();
+    const urlIn = document.getElementById('link-insert-url');
+    const textIn = document.getElementById('link-insert-text');
+    if (urlIn) urlIn.value = '';
+    if (textIn) textIn.value = '';
+
+    // Check if user selected text in post-field-content
+    const contentTextarea = document.getElementById('post-field-content');
+    if (contentTextarea) {
+      const sel = contentTextarea.value.substring(contentTextarea.selectionStart, contentTextarea.selectionEnd).trim();
+      if (sel && textIn) {
+        if (sel.startsWith('http://') || sel.startsWith('https://') || sel.startsWith('www.')) {
+          if (urlIn) urlIn.value = sel;
+        } else {
+          textIn.value = sel;
+        }
+      }
+    }
+
+    this.openModal('link-insert-modal');
+    setTimeout(() => {
+      if (urlIn && !urlIn.value) urlIn.focus();
+      else if (textIn) textIn.focus();
+    }, 150);
+  }
+
+  confirmInsertLink() {
+    const urlIn = document.getElementById('link-insert-url');
+    const textIn = document.getElementById('link-insert-text');
+    const contentTextarea = document.getElementById('post-field-content');
+
+    if (!urlIn || !urlIn.value.trim()) {
+      this.showToast('অনুগ্রহ করে সঠিক লিংক বা URL দিন!', 'warning');
+      if (urlIn) urlIn.focus();
+      return;
+    }
+
+    let url = urlIn.value.trim();
+    if (!/^https?:\/\//i.test(url) && !/^www\./i.test(url)) {
+      url = `https://${url}`;
+    }
+
+    const label = (textIn && textIn.value.trim()) || '';
+    const markdownLink = label ? `[${label}](${url})` : url;
+
+    if (contentTextarea) {
+      const start = contentTextarea.selectionStart || 0;
+      const end = contentTextarea.selectionEnd || 0;
+      const val = contentTextarea.value;
+      const before = val.substring(0, start);
+      const after = val.substring(end);
+
+      const needLeadingSpace = before.length > 0 && !/[\s\n]$/.test(before);
+      const needTrailingSpace = after.length > 0 && !/^[\s\n]/.test(after);
+
+      const insertion = (needLeadingSpace ? ' ' : '') + markdownLink + (needTrailingSpace ? ' ' : '');
+      contentTextarea.value = before + insertion + after;
+      contentTextarea.focus();
+      const newPos = start + insertion.length;
+      contentTextarea.setSelectionRange(newPos, newPos);
+    }
+
+    this.closeModal('link-insert-modal');
+    this.showToast('লিংক কন্টেন্টে সফলভাবে যুক্ত হয়েছে!', 'success');
+  }
+
   resetAdminForm() {
     const form = document.getElementById('admin-post-form');
     if (form) form.reset();
@@ -4736,13 +4903,14 @@ class NexoraApp {
       if (type === 'books') imageUrl = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80';
     }
 
-    // HTML ফরম্যাটিং হেল্পার
+    // HTML ফরম্যাটিং ও অটো-লিংক হেল্পার
     const formatAsHtml = (raw) => {
       if (!raw) return '<p>কোনো অতিরিক্ত বিবরণ নেই।</p>';
-      if (raw.includes('<p>') || raw.includes('<div>') || raw.includes('<h3>')) {
-        return raw;
+      let formatted = raw;
+      if (!raw.includes('<p>') && !raw.includes('<div>') && !raw.includes('<h3>')) {
+        formatted = raw.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
       }
-      return raw.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('\n');
+      return linkifyHtml(formatted);
     };
 
     const submitBtn = document.getElementById('btn-submit-post');
@@ -4786,7 +4954,7 @@ class NexoraApp {
             date,
             readTime,
             image: imageUrl,
-            excerpt: excerpt || title,
+            excerpt: linkifyHtml(excerpt || title),
             author: authorTool || 'নেক্সোরা সম্পাদকীয়',
             content: formatAsHtml(content || excerpt),
             published: true,
@@ -4803,9 +4971,9 @@ class NexoraApp {
             title,
             category,
             tool: authorTool || 'ChatGPT / Claude',
-            desc: excerpt || title,
-            promptText: promptText || excerpt || title,
-            tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
+            desc: linkifyHtml(excerpt || title),
+            promptText: linkifyHtml(promptText || excerpt || title),
+            tips: linkifyHtml(promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।'),
             params: existing && existing.params ? existing.params : {},
             published: true,
             createdAt: (existing && existing.createdAt) || new Date().toISOString(),
@@ -4822,7 +4990,7 @@ class NexoraApp {
             category,
             readTime,
             image: imageUrl,
-            summary: excerpt || title,
+            summary: linkifyHtml(excerpt || title),
             guideContent: formatAsHtml(content || excerpt),
             published: true,
             createdAt: (existing && existing.createdAt) || new Date().toISOString(),
@@ -4842,7 +5010,7 @@ class NexoraApp {
             license: bookLicense,
             year: bookYear,
             cover: imageUrl,
-            desc: excerpt || title,
+            desc: linkifyHtml(excerpt || title),
             gutenbergUrl: bookUrl,
             pdfUrl: bookPdf || (existing ? existing.pdfUrl : ''),
             chapters: existing && existing.chapters && existing.chapters.length ? existing.chapters : [
@@ -4878,7 +5046,7 @@ class NexoraApp {
             date,
             readTime,
             image: imageUrl,
-            excerpt: excerpt || title,
+            excerpt: linkifyHtml(excerpt || title),
             author: authorTool || 'নেক্সোরা সম্পাদকীয়',
             content: formatAsHtml(content || excerpt),
             published: true,
@@ -4893,9 +5061,9 @@ class NexoraApp {
             title,
             category,
             tool: authorTool || 'ChatGPT / Midjourney',
-            desc: excerpt || title,
-            promptText: promptText || excerpt || title,
-            tips: promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।',
+            desc: linkifyHtml(excerpt || title),
+            promptText: linkifyHtml(promptText || excerpt || title),
+            tips: linkifyHtml(promptTips || 'সরাসরি প্রম্পটটি কপি করে এআই মডেলে পেস্ট করুন।'),
             params: {
               'ক্যাটাগরি': category,
               'টুল': authorTool || 'এআই ইঞ্জিন'
@@ -4913,7 +5081,7 @@ class NexoraApp {
             category,
             readTime,
             image: imageUrl,
-            summary: excerpt || title,
+            summary: linkifyHtml(excerpt || title),
             guideContent: formatAsHtml(content || excerpt),
             published: true,
             createdAt: nowIso,
@@ -4931,7 +5099,7 @@ class NexoraApp {
             license: bookLicense,
             year: bookYear,
             cover: imageUrl,
-            desc: excerpt || title,
+            desc: linkifyHtml(excerpt || title),
             gutenbergUrl: bookUrl,
             pdfUrl: bookPdf || '',
             chapters: [
@@ -5091,6 +5259,11 @@ class NexoraApp {
 
       // 2. Guard against PDF download buttons so files download cleanly without popup interference
       if (e.target.closest('.btn-pdf-primary, .btn-pdf-download, [onclick*="downloadBookPdf"], .btn-download-pdf')) {
+        return;
+      }
+
+      // 3. Guard against content links inside posts, prompts, guides, and books
+      if (e.target.closest('a.content-link, .reader-content a, .reader-body a, .prompt-full-box a, .prompt-box a, .news-card-excerpt a, .tech-card-summary a, .book-desc a')) {
         return;
       }
 

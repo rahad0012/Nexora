@@ -927,8 +927,14 @@
 
               <!-- Main Full Article / Guide / Book Chapter Content -->
               <div class="form-group" id="group-full-content">
-                <label for="post-field-content" class="form-label" id="label-full-content">সম্পূর্ণ বিস্তারিত কন্টেন্ট (Full Content) *</label>
-                <div class="content-help-text">প্যারাগ্রাফ ও সাব-হেডিং লিখতে পারেন। সাধারণ টেক্সট লিখলে স্বয়ংক্রিয়ভাবে প্যারাগ্রাফে রূপান্তর হবে, অথবা &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt; ইত্যাদি HTML ট্যাগ ব্যবহার করতে পারেন।</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label for="post-field-content" class="form-label" id="label-full-content" style="margin-bottom: 0;">সম্পূর্ণ বিস্তারিত কন্টেন্ট (Full Content) *</label>
+                  <button type="button" class="btn btn-ghost btn-xs btn-admin" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 2px 8px; border: 1px solid var(--border-color); border-radius: 6px;" onclick="window.nexoraApp.insertLinkPrompt()">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <span>+ লিংক যুক্ত করুন (Add Link)</span>
+                  </button>
+                </div>
+                <div class="content-help-text">প্যারাগ্রাফ ও সাব-হেডিং লিখতে পারেন। সরাসরি লিংক (https://... বা www.example.com) অথবা [লিংকের নাম](https://...) ফরম্যাটে লিখলে তা স্বয়ংক্রিয়ভাবে ক্লিকেবল লিংকে রূপান্তর হবে।</div>
                 <textarea id="post-field-content" class="form-input" rows="7" placeholder="পোস্টের সম্পূর্ণ বডি কন্টেন্ট লিখুন..."></textarea>
               </div>
             </div>

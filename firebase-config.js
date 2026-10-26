@@ -20,6 +20,7 @@ import {
   collection, 
   doc, 
   getDoc,
+  getDocFromServer,
   getDocs, 
   setDoc,
   updateDoc, 
@@ -70,15 +71,19 @@ export const db = initializeFirestore(app, {
  */
 export async function testConnection() {
   try {
-    const q = query(collection(db, 'news'), where('published', '==', true), limit(1));
-    const snap = await getDocs(q);
-    console.log(`Firebase Firestore connection verified. (${snap.size} test item found)`);
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log("Firebase Firestore server connection verified.");
     return true;
   } catch (error) {
-    console.warn("Firestore connection check note:", error?.message || error);
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration.");
+    } else {
+      console.log("Firestore connection check active:", error?.message || error);
+    }
     return false;
   }
 }
+testConnection();
 
 /**
  * Check if the current user is an authorized administrator
